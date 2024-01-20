@@ -1,12 +1,16 @@
 import React, { useEffect, Suspense } from 'react';
-import { useKey } from './hooks/useKey.js';
+import Spinner from 'ink-spinner';
+import { Box, Text, useFocusManager, useInput } from 'ink';
+import { usePublicClient } from 'wagmi';
+
 import { Proposal } from './components/Proposal.js';
 import { StatusBar } from './components/StatusBar.js';
-import { useClient } from 'wagmi';
-import { proposalLoader } from './services/proposals.js';
-import { Box, Text } from 'ink';
-import Spinner from 'ink-spinner';
+import { Help } from './components/Help.js';
+
+import { proposalService } from './services/proposals.js';
 import { useStdoutDimensions } from './hooks/useStdoutDimensions.js';
+import { logger } from './utils/logger.js';
+import { transactionsService } from './services/transactions.js';
 
 const Loading = () => {
 	const [width, height] = useStdoutDimensions();
@@ -26,12 +30,26 @@ const Loading = () => {
 };
 
 export const App = ({ proposalId }: { proposalId: number }) => {
-	useKey('q' as any, () => process.exit(0), true);
-	const client = useClient();
+	const client = usePublicClient();
 	const [ready, setReady] = React.useState(false);
+	const [showHelp, setShowHelp] = React.useState(false);
+
 	useEffect(() => {
-		proposalLoader.init(client).then(() => setReady(true));
+		logger.info('Initializing proposal service');
+		Promise.all([
+			proposalService.init(client),
+			transactionsService.init(client),
+		]).then(() => setReady(true));
 	}, [client, setReady]);
+
+	useInput((input, key) => {
+		if (input === 'h' || input === '?') {
+			setShowHelp(true);
+		}
+		if (input === 'q') {
+			process.exit(0);
+		}
+	});
 
 	if (!ready) {
 		return <Loading />;

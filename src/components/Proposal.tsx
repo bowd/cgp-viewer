@@ -1,5 +1,5 @@
 import React from 'react';
-import { loadProposal } from '../services/proposals.js';
+import { proposalService } from '../services/proposals.js';
 import { useFocusManager } from 'ink';
 
 import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
@@ -10,7 +10,8 @@ import { Transactions } from './Transactions.js';
 import { logger } from '../utils/logger.js';
 
 export const Proposal = ({ id }: { id: number }) => {
-	const proposal = loadProposal(id)!;
+	const proposal = proposalService.load(id)!;
+
 	const { focus } = useFocusManager();
 	const [_, height] = useStdoutDimensions();
 	const [heights, setHeights] = React.useState([
@@ -40,7 +41,7 @@ export const Proposal = ({ id }: { id: number }) => {
 	});
 
 	logger.info(height);
-	logger.info(heights.toString());
+	logger.info(heights);
 
 	return (
 		<>

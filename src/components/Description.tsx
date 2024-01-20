@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { Proposal } from '../services/proposals.js';
+import { IProposal } from '../services/proposals.js';
 import { Text, Box, useFocus } from 'ink';
 import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
 import { parse, setOptions } from 'marked';
 // @ts-ignore
 import TerminalRenderer from 'marked-terminal';
 import { useInput } from 'ink';
+import { logger } from '../utils/logger.js';
 
 type Props = {
 	children: string;
@@ -27,7 +28,7 @@ export const Description = ({
 	proposal,
 	height,
 }: {
-	proposal: Proposal;
+	proposal: IProposal;
 	height: number;
 }) => {
 	const [width] = useStdoutDimensions();
@@ -35,17 +36,24 @@ export const Description = ({
 	const [scrollTop, setScrollTop] = React.useState(0);
 	const { isFocused } = useFocus({ id: '2' });
 
-	useInput((input, key) => {
-		if (!isFocused) return;
-		if (input === 'j') {
-			setScrollTop(scrollTop + 1);
-		} else if (input === 'k') {
-			setScrollTop(scrollTop - 1);
-		}
-	});
+	useInput(
+		(input, key) => {
+			if (input === 'j') {
+				setScrollTop(scrollTop + 1);
+			} else if (input === 'k') {
+				setScrollTop(scrollTop - 1);
+			}
+		},
+		{ isActive: isFocused },
+	);
 
 	return (
-		<Box borderStyle="round" width={width} height={height}>
+		<Box
+			borderStyle="round"
+			width={width}
+			height={height}
+			borderColor={isFocused ? 'white' : 'grey'}
+		>
 			<Box marginLeft={1} marginTop={-1} width={title.length + 2}>
 				<Text bold>{title}</Text>
 			</Box>

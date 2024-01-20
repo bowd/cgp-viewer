@@ -1,24 +1,27 @@
-import { Client } from 'viem';
-import { readContract } from 'viem/actions';
+import { Hex, PublicClient } from 'viem';
 import { Address } from 'viem';
-import { RegistryABI } from '../abis/Registry.js';
-import { GovernanceABI } from '../abis/Governance.js';
 import { logger } from '../utils/logger.js';
+import { getAddress, forGovernance } from '../utils/viewCalls.js';
 
-export const loadProposal = (id: number) => {
-	if (proposalLoader.proposalCache.has(id)) {
-		return proposalLoader.proposalCache.get(id);
-	} else if (proposalLoader.isLoading.has(id)) {
-		throw proposalLoader.promises.get(id);
-	} else {
-		const promise = proposalLoader.loadProposal(id);
-		proposalLoader.promises.set(id, promise);
-		proposalLoader.isLoading.add(id);
-		throw promise;
-	}
-};
+enum Stage {
+	None = 'None',
+	Queued = 'Queued',
+	Approval = 'Approval',
+	Referendum = 'Referendum',
+	Execution = 'Execution',
+	Expiration = 'Expiration',
+}
 
-export interface Proposal {
+const stages: Stage[] = [
+	Stage.None,
+	Stage.Queued,
+	Stage.Approval,
+	Stage.Referendum,
+	Stage.Execution,
+	Stage.Expiration,
+];
+
+export interface IProposal {
 	id: number;
 	proposer: Address;
 	deposit: bigint;
@@ -28,84 +31,180 @@ export interface Proposal {
 	descriptionUrl: string;
 	approved: boolean;
 	description: string;
-	transactions: Transaction[];
+	transactions: ITransaction[];
+	stage: Stage;
+	isPassing: boolean;
+	isApproved: boolean;
+
+	votes: {
+		votesFor: bigint;
+		votesAgainst: bigint;
+		abstains: bigint;
+	};
+	upvotes: bigint;
 }
 
-export interface Transaction {
+export interface ITransaction {
 	to: Address;
 	value: bigint;
-	data: string;
+	data: Hex;
 }
 
-const REGISTRY: Address = '0x000000000000000000000000000000000000ce10';
-
-class ProposalLoader {
-	proposalCache: Map<number, Proposal> = new Map();
+class ProposalService {
+	proposalCache: Map<number, IProposal> = new Map();
 	isLoading: Set<number> = new Set();
-	promises: Map<number, Promise<Proposal>> = new Map();
+	promises: Map<number, Promise<IProposal>> = new Map();
 
 	governanceAddress: Address = '0x';
-	client: Client | null = null;
+	client: PublicClient | null = null;
+	queries: ReturnType<typeof forGovernance> | null = null;
 
-	async init(client: Client) {
+	async init(client: PublicClient) {
 		this.client = client;
-		this.governanceAddress = await readContract(client, {
-			address: REGISTRY,
-			abi: RegistryABI,
-			functionName: 'getAddressForStringOrDie',
-			args: ['Governance'],
-		});
+		this.governanceAddress = await client.readContract(
+			getAddress('Governance'),
+		);
+		this.queries = forGovernance(this.governanceAddress);
 	}
 
-	async loadProposal(id: number): Promise<Proposal> {
-		const proposal = await this._loadProposal(id);
-		this.isLoading.delete(id);
-		this.promises.delete(id);
-		this.proposalCache.set(id, proposal);
-		return proposal;
-	}
-
-	async _loadProposal(id: number): Promise<Proposal> {
-		logger.info('Loading proposal ' + id);
-		const proposalData = await readContract(this.client!, {
-			address: this.governanceAddress,
-			abi: GovernanceABI,
-			functionName: 'getProposal',
-			args: [BigInt(id)],
-		});
-
-		const proposal: Omit<Proposal, 'description' | 'transactions'> = {
-			id: id,
-			proposer: proposalData[0],
-			deposit: proposalData[1],
-			timestamp: Number(proposalData[2]),
-			transactionsLength: Number(proposalData[3]),
-			descriptionUrl: proposalData[4],
-			networkWeight: proposalData[5],
-			approved: proposalData[6],
-		};
-
-		let description: string;
-		try {
-			const descriptionResponse = await fetch(proposal.descriptionUrl).then(
-				res => res.json(),
-			);
-			const rawUrl = descriptionResponse['payload']['blob']['rawBlobUrl'];
-			description = await fetch(rawUrl).then(res => res.text());
-		} catch (e) {
-			logger.error('Failed to load description for proposal ' + id);
-			logger.error(e);
-			description = await fetch(proposal.descriptionUrl).then(res =>
-				res.text(),
-			);
+	/// @dev Loads a proposal from the blockchain. Made to work with suspense
+	load(id: number): IProposal {
+		if (this.proposalCache.has(id)) {
+			return this.proposalCache.get(id)!;
 		}
+		if (this.isLoading.has(id)) {
+			throw this.promises.get(id)!;
+		}
+
+		const promise = new Promise<IProposal>(async (resolve, reject) => {
+			try {
+				const proposal = await this.handleLoad(id);
+				this.proposalCache.set(id, proposal);
+				resolve(proposal);
+			} catch (e) {
+				// Todo Handle error better
+				reject(e);
+			} finally {
+				this.promises.delete(id);
+				this.isLoading.delete(id);
+			}
+		});
+
+		this.promises.set(id, promise);
+		this.isLoading.add(id);
+
+		throw promise;
+	}
+
+	async handleLoad(id: number): Promise<IProposal> {
+		logger.debug('Loading proposal ' + id);
+
+		const proposal = await this.loadBaseProposal(id);
+		const transactions = await this.loadTransactions(proposal);
 
 		return {
 			...proposal,
-			description,
-			transactions: [],
+			description: await this.loadDescription(proposal),
+			transactions: transactions,
 		};
+	}
+
+	async loadDescription(
+		proposal: Pick<IProposal, 'descriptionUrl' | 'id'>,
+	): Promise<string> {
+		try {
+			const response = await fetch(proposal.descriptionUrl).then(res =>
+				res.json(),
+			);
+			const rawUrl = response['payload']['blob']['rawBlobUrl'];
+			return await fetch(rawUrl).then(res => res.text());
+		} catch (e) {
+			logger.error('Failed to load description for proposal ' + proposal.id);
+			logger.error(e);
+			return await fetch(proposal.descriptionUrl).then(res => res.text());
+		}
+	}
+
+	async loadBaseProposal(
+		id: number,
+	): Promise<Omit<IProposal, 'transactions' | 'description'>> {
+		const response = await this.client!.multicall({
+			contracts: [
+				this.queries!.getProposal(id),
+				this.queries!.getVotes(id),
+				this.queries!.getStage(id),
+				this.queries!.isPassing(id),
+				this.queries!.isApproved(id),
+			],
+		});
+
+		logger.debug('Done');
+
+		const callWithError = response.filter(r => r.status === 'failure');
+		if (callWithError.length > 0) {
+			logger.info(response.map(r => r.status));
+			throw 'Failed to load proposal';
+		}
+
+		logger.debug('Done');
+
+		const [
+			proposer,
+			deposit,
+			timestamp,
+			transactionsLength,
+			descriptionUrl,
+			networkWeight,
+			approved,
+		] = response[0].result!;
+		const [votesFor, votesAgainst, abstains] = response[1].result!;
+		const stage: Stage = stages[Number(response[2].result!)];
+		const isPassing = response[3].result!;
+		const isApproved = response[4].result!;
+
+		let upvotes = BigInt(0);
+		if (stage === Stage.Queued) {
+			upvotes = await this.client!.readContract(this.queries!.getUpvotes(id));
+		}
+
+		return {
+			id: id,
+			proposer,
+			deposit,
+			timestamp: Number(timestamp),
+			transactionsLength: Number(transactionsLength),
+			descriptionUrl,
+			networkWeight,
+			approved,
+			stage,
+			isPassing,
+			isApproved,
+			votes: { votesFor, votesAgainst, abstains },
+			upvotes,
+		};
+	}
+
+	async loadTransactions(
+		proposal: Pick<IProposal, 'id' | 'transactionsLength'>,
+	): Promise<ITransaction[]> {
+		const txs = await this.client!.multicall({
+			contracts: new Array(proposal.transactionsLength)
+				.fill(null)
+				.map((_, i) => this.queries!.getTransaction(proposal.id, i)),
+		});
+
+		const callWithError = txs.filter(r => r.status === 'failure');
+		if (callWithError.length > 0) {
+			logger.info(txs.map(r => r.status));
+			throw 'Failed to load Transactions';
+		}
+
+		return txs.map(tx => ({
+			value: tx.result![0],
+			to: tx.result![1],
+			data: tx.result![2],
+		}));
 	}
 }
 
-export const proposalLoader = new ProposalLoader();
+export const proposalService = new ProposalService();

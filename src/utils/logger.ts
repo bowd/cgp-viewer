@@ -8,9 +8,9 @@ const logDir = path.join(home, '.cache/cgp-viewer');
 const logFile = path.join(logDir, 'log');
 
 mkdirSync(logDir, { recursive: true });
-export const logger = new Logger({ type: 'hidden' });
+export const logger = new Logger({ type: 'hidden', argumentsArrayName: 'args' });
 logger.attachTransport(logObj => {
-	appendFileSync(logFile, JSON.stringify(logObj) + '\n');
+	appendFileSync(logFile, JSON.stringify(logObj.args) + '\n');
 });
 
 console.log = logger.info.bind(logger);
