@@ -4,18 +4,19 @@ import { Text, Box, Newline, useFocus, useInput } from 'ink';
 import { useAddressBook } from '../hooks/useAddressBook.js';
 import { useChainId } from 'wagmi';
 import { Address } from 'viem';
+import { logger } from '../utils/logger.js';
 
 export const AddressBook = () => {
 	const title = 'Address Book [4]';
 	const { isFocused } = useFocus({ id: '4' });
 	const chainId = useChainId();
-	const { addressBook } = useAddressBook();
+	const { addressBook, newAddresses } = useAddressBook();
 	const [selected, setSelected] = React.useState(0);
 
 	const addresses = useMemo(() => {
 		const entries = addressBook[chainId];
-		return Object.keys(entries) as Address[];
-	}, [addressBook, chainId]);
+		return [...newAddresses, ...(Object.keys(entries) as Address[])];
+	}, [addressBook, chainId, newAddresses]);
 
 	useInput(
 		input => {
@@ -46,16 +47,23 @@ export const AddressBook = () => {
 									{' '}
 									{address}{' '}
 								</Text>
-								{addressBook[chainId][address].map(alias => (
+								{newAddresses.indexOf(address) > -1 ? (
 									<>
 										<Newline />
-										<Text key={alias.label}>
-											{' - '}
-											{alias.label}
-											{alias.prefered ? ' (prefered)' : ''}
-										</Text>
+										<Text color="grey">{'   '}unknown address</Text>
 									</>
-								))}
+								) : (
+									(addressBook[chainId][address] || []).map(alias => (
+										<>
+											<Newline />
+											<Text key={alias.label}>
+												{'   '}
+												<Text color="green">{alias.label}</Text>
+												{alias.prefered ? ' (prefered)' : ''}
+											</Text>
+										</>
+									))
+								)}
 							</Text>
 						))}
 					</Box>

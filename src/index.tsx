@@ -8,6 +8,7 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { makeConfig } from './utils/wagmiConfig.js';
 import './utils/logger.js';
+import AddressBookProvider from './hooks/AddressBookProvider.js';
 
 const cli = meow(
 	`
@@ -55,7 +56,9 @@ if (isNaN(proposalId)) {
 render(
 	<QueryClientProvider client={queryClient}>
 		<WagmiProvider config={makeConfig(flags.chain, flags.node)}>
-			<App proposalId={proposalId} />
+			<AddressBookProvider>
+				<App proposalId={proposalId} />
+			</AddressBookProvider>
 		</WagmiProvider>
 	</QueryClientProvider>,
 );

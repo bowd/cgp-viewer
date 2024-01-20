@@ -3,11 +3,12 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 import { JsonMap, parse, stringify } from '@iarna/toml';
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { useChainId } from 'wagmi';
 import { Address } from 'viem';
 import { addressbook as defaultAddressbook } from '../utils/default.addressbook.js';
 import { logger } from '../utils/logger.js';
+import { AddressBookContext } from './AddressBookProvider.js';
 
 const home = os.homedir();
 const confDir = path.join(home, '.config/cgp-viewer');
@@ -21,22 +22,32 @@ export interface Alias {
 
 export type AddressBook = Record<number, Record<Address, Alias[]>>;
 
-export const useAddressBook = () => {
-	const addressBookFromFile = useMemo(() => {
-		if (!fs.existsSync(addressbookPath)) {
-			fs.writeFileSync(
-				addressbookPath,
-				stringify(defaultAddressbook as unknown as JsonMap),
-			);
-			return defaultAddressbook;
-		}
-		const addressbook = parse(fs.readFileSync(addressbookPath, 'utf-8'));
-		return addressbook as unknown as AddressBook;
-	}, []);
+let _initialAddressBook: AddressBook | null = null;
 
-	const [addressBook, setAddressBook] =
-		useState<AddressBook>(addressBookFromFile);
+const loadInitialAddressBook = () => {
+	if (_initialAddressBook) return _initialAddressBook;
+	if (!fs.existsSync(addressbookPath)) {
+		fs.writeFileSync(
+			addressbookPath,
+			stringify(defaultAddressbook as unknown as JsonMap),
+		);
+		_initialAddressBook = defaultAddressbook;
+	} else {
+		_initialAddressBook = parse(
+			fs.readFileSync(addressbookPath, 'utf-8'),
+		) as unknown as AddressBook;
+	}
+
+	return _initialAddressBook;
+};
+
+export const makeAddressBookContext = () => {
+	const [addressBook, setAddressBook] = useState<AddressBook>(
+		loadInitialAddressBook(),
+	);
 	const chainId = useChainId();
+
+	const [newAddresses, setNewAddresses] = useState<Address[]>([]);
 
 	useEffect(() => {
 		fs.writeFileSync(
@@ -94,17 +105,42 @@ export const useAddressBook = () => {
 		[setAddressBook, chainId],
 	);
 
+	logger.info('newAddresses:', newAddresses);
+
 	return {
 		addressBook,
 		add,
 		addBatch,
+		newAddresses,
+		setNewAddresses,
 	};
 };
 
+export const useAddressBook = (): ReturnType<typeof makeAddressBookContext> => {
+	return useContext(AddressBookContext)!;
+};
+
 export const useAddressBookLabel = (address: Address): string | null => {
-	const { addressBook } = useAddressBook();
-	const aliases = addressBook[useChainId()]?.[address] ?? [];
-	if (aliases.length === 0) return null;
+	const { addressBook, setNewAddresses } = useAddressBook();
+	const chainId = useChainId();
+	const aliases = useMemo(
+		() => addressBook[chainId]?.[address] ?? [],
+		[addressBook, address, chainId],
+	);
+
+	useEffect(() => {
+		if (aliases.length === 0) {
+			logger.info(address);
+			setNewAddresses(addresses => {
+				if (addresses.indexOf(address) > -1) return addresses;
+				return [...addresses, address];
+			});
+		}
+	}, [address, aliases, setNewAddresses]);
+
+	if (aliases.length === 0) {
+		return null;
+	}
 	const prefered = aliases.find(alias => alias.prefered);
 	if (prefered) return prefered.label;
 	return aliases[0].label;
