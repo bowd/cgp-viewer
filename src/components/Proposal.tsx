@@ -1,6 +1,6 @@
 import React from 'react';
 import { proposalService } from '../services/proposals.js';
-import { useFocusManager } from 'ink';
+import { Box, Text, useFocusManager } from 'ink';
 
 import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
 import { useInput } from '../hooks/useInput.js';
@@ -8,12 +8,13 @@ import { Metadata } from './Metadata.js';
 import { Description } from './Description.js';
 import { Transactions } from './Transactions.js';
 import { logger } from '../utils/logger.js';
+import { AddressBook } from './AddressBook.js';
 
 export const Proposal = ({ id }: { id: number }) => {
 	const proposal = proposalService.load(id)!;
 
 	const { focus } = useFocusManager();
-	const [_, height] = useStdoutDimensions();
+	const [width, height] = useStdoutDimensions();
 	const [heights, setHeights] = React.useState([
 		Math.floor((height - 3) / 3),
 		Math.floor((height - 3) / 3),
@@ -38,16 +39,24 @@ export const Proposal = ({ id }: { id: number }) => {
 			focus('3');
 			setHeights([small, small, featured]);
 		}
+
+		if (input.raw === '4') {
+			focus('4');
+		}
 	});
 
-	logger.info(height);
-	logger.info(heights);
+	const addressBookWidth = 50;
 
 	return (
-		<>
-			<Metadata proposal={proposal} height={heights[0]} />
-			<Description proposal={proposal} height={heights[1]} />
-			<Transactions proposal={proposal} height={heights[2]} />
-		</>
+		<Box flexDirection="row">
+			<Box width={width - addressBookWidth} flexDirection="column">
+				<Metadata proposal={proposal} height={heights[0]} />
+				<Description proposal={proposal} height={heights[1]} />
+				<Transactions proposal={proposal} height={heights[2]} />
+			</Box>
+			<Box width={addressBookWidth}>
+				<AddressBook />
+			</Box>
+		</Box>
 	);
 };

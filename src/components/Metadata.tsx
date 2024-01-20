@@ -23,7 +23,6 @@ export const Metadata = ({
 	proposal: IProposal;
 	height: number;
 }) => {
-	const [width] = useStdoutDimensions();
 	const title = 'Metadata [1]';
 	const { isFocused } = useFocus({ id: '1' });
 	const percs = getVotingPercentages(proposal.votes);
@@ -31,7 +30,6 @@ export const Metadata = ({
 	return (
 		<Box
 			borderStyle="round"
-			width={width}
 			height={height}
 			borderColor={isFocused ? 'white' : 'grey'}
 		>

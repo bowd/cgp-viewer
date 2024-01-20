@@ -28,11 +28,8 @@ export const StatusBar = () => {
 					<Text bold>q</Text>
 					<Text> to quit</Text>
 					<Text> | </Text>
-					<Text bold>h/?</Text>
-					<Text> for help</Text>
-					<Text> | </Text>
 					<Text bold>j/k</Text>
-					<Text> to scroll</Text>
+					<Text> to scroll </Text>
 				</Box>
 			</Box>
 		</Box>

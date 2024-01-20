@@ -71,7 +71,7 @@ export const ParsedTransaction = ({
 			(
 			<Newline />
 			{tx.args.map((arg, index) => (
-				<>
+				<Text key={`${index}-${tx.abi.inputs[index].name}`}>
 					<Argument
 						key={index}
 						value={arg}
@@ -80,7 +80,7 @@ export const ParsedTransaction = ({
 						nesting={1}
 					/>
 					<Newline />
-				</>
+				</Text>
 			))}
 			{')'}
 		</Text>
@@ -116,6 +116,7 @@ export const Transaction = ({
 			borderStyle="round"
 			width="100%"
 			flexShrink={0}
+			flexGrow={0}
 			borderColor="grey"
 			paddingLeft={1}
 			paddingRight={1}

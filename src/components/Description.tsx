@@ -31,7 +31,6 @@ export const Description = ({
 	proposal: IProposal;
 	height: number;
 }) => {
-	const [width] = useStdoutDimensions();
 	const title = 'Description [2]';
 	const [scrollTop, setScrollTop] = React.useState(0);
 	const { isFocused } = useFocus({ id: '2' });
@@ -50,7 +49,6 @@ export const Description = ({
 	return (
 		<Box
 			borderStyle="round"
-			width={width}
 			height={height}
 			borderColor={isFocused ? 'white' : 'grey'}
 		>

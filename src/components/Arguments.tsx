@@ -2,17 +2,16 @@ import React from 'react';
 import { Text } from 'ink';
 import { transactionsService } from '../services/transactions.js';
 import { Address } from 'viem';
+import { useAddressBookLabel } from '../hooks/useAddressBook.js';
 
 export const ArgAddress = ({ address }: { address: Address }) => {
-	const nameFromAddressBook = null; // useAddressBook(address):
-	const nameFromContract = transactionsService.contractNames.get(address);
-	const name: string | null = nameFromAddressBook || nameFromContract || null;
+	const label = useAddressBookLabel(address);
 
-	if (name) {
+	if (label) {
 		return (
 			<>
 				<Text bold color="green">
-					{name}
+					{label}
 				</Text>
 				<Text color="grey">({address})</Text>
 			</>
