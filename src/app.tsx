@@ -1,45 +1,48 @@
-import React from 'react';
-import { Text, Box } from 'ink';
+import React, { useEffect, Suspense } from 'react';
 import { useKey } from './hooks/useKey.js';
+import { Proposal } from './components/Proposal.js';
+import { StatusBar } from './components/StatusBar.js';
+import { useClient } from 'wagmi';
+import { proposalLoader } from './services/proposals.js';
+import { Box, Text } from 'ink';
+import Spinner from 'ink-spinner';
 import { useStdoutDimensions } from './hooks/useStdoutDimensions.js';
-// import { useEffect } from 'react';
 
-type Props = {
-	name: string | undefined;
-};
-
-export default function App({ name = 'Stranger' }: Props) {
-	useKey(
-		['escape', 'leftArrow'],
-		() => {
-			console.error('asd');
-		},
-		true,
-	);
+const Loading = () => {
 	const [width, height] = useStdoutDimensions();
-	// const { setRawMode } = useStdin();
-
-	// useEffect(() => {
-	// 	setRawMode(true);
-	// 	return () => {
-	// 		setRawMode(false);
-	// 	};
-	// });
 
 	return (
 		<Box
 			width={width}
-			height={height}
-			alignSelf="center"
-			justifyContent="center"
+			height={height - 3}
+			alignItems="center"
+			paddingLeft={width / 2 - 10}
 		>
-			<Text>
-				Hello, <Text color="green">{name}</Text>
-			</Text>
-			<Text>
-				Width: {width}
-				Height: {height}
+			<Text bold color="green">
+				Loading <Spinner type="dots" />
 			</Text>
 		</Box>
 	);
-}
+};
+
+export const App = ({ proposalId }: { proposalId: number }) => {
+	useKey('q' as any, () => process.exit(0), true);
+	const client = useClient();
+	const [ready, setReady] = React.useState(false);
+	useEffect(() => {
+		proposalLoader.init(client).then(() => setReady(true));
+	}, [client, setReady]);
+
+	if (!ready) {
+		return <Loading />;
+	}
+
+	return (
+		<>
+			<Suspense fallback={<Loading />}>
+				<Proposal id={proposalId} />
+			</Suspense>
+			<StatusBar />
+		</>
+	);
+};

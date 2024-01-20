@@ -10,15 +10,25 @@
 	"scripts": {
 		"build": "tsc",
 		"dev": "tsc --watch",
-		"test": "prettier --check . && xo && ava"
+		"test": "prettier --check . && xo && ava",
+		"start": "node --enable-source-maps --experimental-specifier-resolution=node dist/index.js"
 	},
 	"files": [
 		"dist"
 	],
 	"dependencies": {
+		"@tanstack/react-query": "^5.17.15",
+		"@types/marked-terminal": "^6.0.1",
 		"ink": "^4.4.1",
+		"ink-spinner": "^5.0.0",
+		"marked": "^11.1.1",
+		"marked-terminal": "^6.2.0",
 		"meow": "^11.0.0",
-		"react": "^18.2.0"
+		"react": "^18.2.0",
+		"toml": "^3.0.0",
+		"tslog": "^4.9.2",
+		"viem": "^2.4.0",
+		"wagmi": "^2.3.1"
 	},
 	"devDependencies": {
 		"@sindresorhus/tsconfig": "^3.0.1",
@@ -27,14 +37,6 @@
 		"@vdemedes/prettier-config": "^2.0.1",
 		"ava": "^5.2.0",
 		"chalk": "^5.2.0",
-		"eslint": "^8.56.0",
-		"eslint-config-standard-with-typescript": "^43.0.0",
-		"eslint-config-xo-react": "^0.27.0",
-		"eslint-plugin-import": "^2.25.2",
-		"eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
-		"eslint-plugin-promise": "^6.0.0",
-		"eslint-plugin-react": "^7.33.2",
-		"eslint-plugin-react-hooks": "^4.6.0",
 		"ink-testing-library": "^3.0.0",
 		"prettier": "^2.8.7",
 		"ts-node": "^10.9.1",
