@@ -15,6 +15,10 @@ export const Pane = (props: PaneProps) => {
 	const textColor = isFocused ? 'yellow' : 'white';
 	const borderColor = isFocused ? 'yellow' : 'grey';
 
+	if (props.height === 0) {
+		return null;
+	}
+
 	return (
 		<Box
 			borderStyle="single"

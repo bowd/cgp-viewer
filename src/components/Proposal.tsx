@@ -24,13 +24,11 @@ export const Proposal = ({ id }: { id: number }) => {
 	const [descriptionHeight, transactionsHeight] = useMemo(() => {
 		let transactionsHeight, descriptionHeight;
 		if (zoomed === 'description') {
-			transactionsHeight = 10;
-			descriptionHeight =
-				height - (STATUS_HEIGHT + METADATA_HEIGHT + transactionsHeight);
+			transactionsHeight = 0;
+			descriptionHeight = height - STATUS_HEIGHT - METADATA_HEIGHT;
 		} else if (zoomed === 'transactions') {
-			descriptionHeight = 10;
-			transactionsHeight =
-				height - (STATUS_HEIGHT + METADATA_HEIGHT + descriptionHeight);
+			descriptionHeight = 0;
+			transactionsHeight = height - STATUS_HEIGHT - METADATA_HEIGHT;
 		} else {
 			const half = Math.floor((height - (STATUS_HEIGHT + METADATA_HEIGHT)) / 2);
 			descriptionHeight = half;

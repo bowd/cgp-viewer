@@ -17,7 +17,7 @@ export const ArgAddress = ({ address }: { address: Address }) => {
 				{highlightedAddress === address ? (
 					<Text color="grey">
 						(
-						<Text bold color="black" backgroundColor="red">
+						<Text bold color="black" backgroundColor="blue">
 							{address}
 						</Text>
 						)
@@ -30,7 +30,7 @@ export const ArgAddress = ({ address }: { address: Address }) => {
 	} else {
 		if (highlightedAddress === address) {
 			return (
-				<Text bold color="black" backgroundColor="red">
+				<Text bold color="black" backgroundColor="blue">
 					{address}
 				</Text>
 			);

@@ -78,9 +78,11 @@ export const Transactions = ({
 }) => {
 	return (
 		<Pane title="Transactions" focusId="3" height={height}>
-			<Suspense fallback={<Loading />}>
-				<TransactionsList proposal={proposal} />
-			</Suspense>
+			<Box overflow="hidden" padding={1}>
+				<Suspense fallback={<Loading />}>
+					<TransactionsList proposal={proposal} />
+				</Suspense>
+			</Box>
 		</Pane>
 	);
 };

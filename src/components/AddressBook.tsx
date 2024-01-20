@@ -159,7 +159,6 @@ export const AddressBook = () => {
 
 	useEffect(() => {
 		if (!isFocused) {
-			setHighlightedAddress(null);
 			return;
 		}
 		if (selected >= 0 && selected < addressesInProposal.length) {

@@ -38,11 +38,11 @@ const Markdown = ({ children, ...options }: Props) => {
 			return text
 				.replace(
 					highlightedAddress,
-					`\x1b[41m\x1b[30m${highlightedAddress}\x1b[0m`,
+					`\x1b[44m\x1b[30m\x1b[1m${highlightedAddress}\x1b[0m`,
 				)
 				.replace(
 					highlightedAddress.toLowerCase(),
-					`\x1b[41m[\x1b30m${highlightedAddress.toLowerCase()}\x1b[0m`,
+					`\x1b[44m[\x1b30m\x1b[1m${highlightedAddress.toLowerCase()}\x1b[0m`,
 				);
 		}
 
@@ -75,7 +75,7 @@ export const Description = ({
 
 	return (
 		<Pane title="Description" focusId="2" height={height}>
-			<Box overflow="hidden" marginTop={1}>
+			<Box overflow="hidden" padding={1}>
 				<Box flexShrink={0} flexDirection="column" marginTop={-scrollTop}>
 					<Markdown>{proposal.description}</Markdown>
 				</Box>
