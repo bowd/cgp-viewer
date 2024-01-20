@@ -1,6 +1,6 @@
 import React from 'react';
 import { IProposal } from '../services/proposals.js';
-import { Text, Newline } from 'ink';
+import { Text, Newline, Box } from 'ink';
 import { Pane } from './Pane.js';
 
 const getVotingPercentages = (
@@ -27,63 +27,65 @@ export const Metadata = ({
 
 	return (
 		<Pane title="Metadata" focusId="1" height={height}>
-			<Text>
-				<Text bold backgroundColor={'yellow'} color="black">
-					{' '}
-					Proposal {proposal.id}{' '}
-				</Text>
-				<Text>{' | '}</Text>
-				<Text bold inverse>
-					{' '}
-					{proposal.stage.toString()}{' '}
-				</Text>
+			<Box paddingLeft={1}>
 				<Text>
+					<Text bold backgroundColor={'yellow'} color="black">
+						{' '}
+						Proposal {proposal.id}{' '}
+					</Text>
 					<Text>{' | '}</Text>
-				</Text>
-				<Text>
-					Proposer: <Text bold>{proposal.proposer}</Text>
-				</Text>
-				<Text>
-					<Text>{' | '}</Text>
-				</Text>
-				<Text bold color={proposal.isApproved ? 'green' : 'red'}>
-					{proposal.isApproved ? '✔ Approved' : ' Not Approved'}
-				</Text>
-				<Text>
-					<Text>{' | '}</Text>
-				</Text>
-				<Text bold color={proposal.isPassing ? 'green' : 'red'}>
-					{proposal.isPassing ? '✔ Passing' : ' Not Passing'}
-				</Text>
-				<Newline />
-				<Text>
-					Description URL: <Text bold>{proposal.descriptionUrl}</Text>
-				</Text>
-				<Newline />
-				<Text>
-					<Text backgroundColor="green" color="black">
+					<Text bold inverse>
 						{' '}
-						For{' '}
+						{proposal.stage.toString()}{' '}
 					</Text>
-					<Text bold>
-						{' '}
-						{proposal.votes.votesFor.toString()} ({percs.votesFor}%){' '}
+					<Text>
+						<Text>{' | '}</Text>
 					</Text>
-					<Text backgroundColor="red" color="black">
-						{' '}
-						Against{' '}
+					<Text>
+						Proposer: <Text bold>{proposal.proposer}</Text>
 					</Text>
-					<Text bold>
-						{' '}
-						{proposal.votes.votesAgainst.toString()} ({percs.votesAgainst}%){' '}
+					<Text>
+						<Text>{' | '}</Text>
 					</Text>
-					<Text inverse> Abstain </Text>
-					<Text bold>
-						{' '}
-						{proposal.votes.abstains.toString()} ({percs.abstains}%){' '}
+					<Text bold color={proposal.isApproved ? 'green' : 'red'}>
+						{proposal.isApproved ? '✔ Approved' : ' Not Approved'}
+					</Text>
+					<Text>
+						<Text>{' | '}</Text>
+					</Text>
+					<Text bold color={proposal.isPassing ? 'green' : 'red'}>
+						{proposal.isPassing ? '✔ Passing' : ' Not Passing'}
+					</Text>
+					<Newline />
+					<Text>
+						Description URL: <Text bold>{proposal.descriptionUrl}</Text>
+					</Text>
+					<Newline />
+					<Text>
+						<Text backgroundColor="green" color="black">
+							{' '}
+							For{' '}
+						</Text>
+						<Text bold>
+							{' '}
+							{proposal.votes.votesFor.toString()} ({percs.votesFor}%){' '}
+						</Text>
+						<Text backgroundColor="red" color="black">
+							{' '}
+							Against{' '}
+						</Text>
+						<Text bold>
+							{' '}
+							{proposal.votes.votesAgainst.toString()} ({percs.votesAgainst}%){' '}
+						</Text>
+						<Text inverse> Abstain </Text>
+						<Text bold>
+							{' '}
+							{proposal.votes.abstains.toString()} ({percs.abstains}%){' '}
+						</Text>
 					</Text>
 				</Text>
-			</Text>
+			</Box>
 		</Pane>
 	);
 };
