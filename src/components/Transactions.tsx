@@ -1,12 +1,11 @@
 import React, { Suspense, useEffect } from 'react';
 import { IProposal } from '../services/proposals.js';
 import { Text, Box, useFocus, useInput } from 'ink';
-import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
 import { Transaction } from './Transaction.js';
 import { transactionsService } from '../services/transactions.js';
 import Spinner from 'ink-spinner';
 import { useAddressBook } from '../hooks/useAddressBook.js';
-import { Address } from 'viem';
+import { Pane } from './Pane.js';
 
 const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
 	const transactions = transactionsService.parse(proposal);
@@ -22,6 +21,18 @@ const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
 
 	const [offset, setOffset] = React.useState(0);
 	const { isFocused } = useFocus({ id: '3' });
+	const [selected, setSelected] = React.useState(0);
+
+	useInput(
+		input => {
+			if (input === 'j') {
+				setSelected(Math.min(selected + 1, transactions.length - 1));
+			} else if (input === 'k') {
+				setSelected(Math.max(selected - 1, 0));
+			}
+		},
+		{ isActive: isFocused },
+	);
 
 	useInput(
 		input => {
@@ -42,6 +53,7 @@ const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
 						key={`${tx.index}-${tx.raw.to}-${tx.raw.data}`}
 						index={tx.index}
 						transaction={tx}
+						selected={selected == tx.index && isFocused}
 					/>
 				))}
 			</Box>
@@ -64,23 +76,11 @@ export const Transactions = ({
 	proposal: IProposal;
 	height: number;
 }) => {
-	const title = 'Transactions [3]';
-	const { isFocused } = useFocus({ id: '3' });
-
 	return (
-		<Box
-			borderStyle="round"
-			height={height}
-			borderColor={isFocused ? 'white' : 'grey'}
-		>
-			<Box marginLeft={1} marginTop={-1} width={title.length + 2}>
-				<Text bold>{title}</Text>
-			</Box>
-			<Box marginLeft={-1 * (title.length + 1)} overflow="hidden" padding={0}>
-				<Suspense fallback={<Loading />}>
-					<TransactionsList proposal={proposal} />
-				</Suspense>
-			</Box>
-		</Box>
+		<Pane title="Transactions" focusId="3" height={height}>
+			<Suspense fallback={<Loading />}>
+				<TransactionsList proposal={proposal} />
+			</Suspense>
+		</Pane>
 	);
 };

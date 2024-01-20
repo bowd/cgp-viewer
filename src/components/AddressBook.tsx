@@ -1,82 +1,195 @@
-import React, { useMemo } from 'react';
-import { IProposal } from '../services/proposals.js';
-import { Text, Box, Newline, useFocus, useInput } from 'ink';
-import { useAddressBook } from '../hooks/useAddressBook.js';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { Text, Box, useFocus, useInput } from 'ink';
+import { Alias, useAddressBook } from '../hooks/useAddressBook.js';
 import { useChainId } from 'wagmi';
 import { Address } from 'viem';
-import { logger } from '../utils/logger.js';
+import { Pane } from './Pane.js';
+import { UncontrolledTextInput } from 'ink-text-input';
+
+type EntryProps = {
+	address: Address;
+	aliases: Alias[];
+	selected: boolean;
+};
+
+const AliasList = ({
+	aliases,
+	address,
+	selected,
+}: {
+	aliases: Alias[];
+	address: Address;
+	selected: boolean;
+}) => {
+	const [formActive, setFormActive] = React.useState(false);
+	const { rename } = useAddressBook();
+	const main = aliases.find(alias => alias.prefered) || aliases[0];
+
+	const onSubmit = useCallback(
+		(label: string) => {
+			if (label === main.label) {
+				setFormActive(false);
+				return;
+			}
+			rename(address, main.label, label);
+		},
+		[rename, main],
+	);
+
+	useInput(
+		(_, key) => {
+			if (key.return) {
+				setFormActive(true);
+			}
+		},
+		{
+			isActive: selected && !formActive,
+		},
+	);
+
+	if (formActive) {
+		return (
+			<>
+				<Box flexDirection="row">
+					<Text color="grey">{'   '}label: </Text>
+					<UncontrolledTextInput
+						initialValue={main.label}
+						onSubmit={onSubmit}
+					/>
+				</Box>
+			</>
+		);
+	}
+
+	return (
+		<>
+			{aliases.map(alias => (
+				<>
+					<Text key={alias.label}>
+						{'   '}
+						<Text color="green">{alias.label}</Text>
+						{alias.prefered ? ' (prefered)' : ''}
+					</Text>
+				</>
+			))}
+		</>
+	);
+};
+
+const AliasForm = ({
+	address,
+	selected,
+}: {
+	address: Address;
+	selected: boolean;
+}) => {
+	const [formActive, setFormActive] = React.useState(false);
+	const { add } = useAddressBook();
+	const onSubmit = useCallback(
+		(label: string) => {
+			if (label === '') {
+				setFormActive(false);
+				return;
+			}
+			add(address, label);
+		},
+		[add],
+	);
+
+	useInput(
+		(_, key) => {
+			if (key.return && !formActive) {
+				setFormActive(true);
+			}
+		},
+		{
+			isActive: selected,
+		},
+	);
+
+	if (formActive) {
+		return (
+			<>
+				<Box flexDirection="row">
+					<Text>{'   '}label: </Text>
+					<UncontrolledTextInput onSubmit={onSubmit} />
+				</Box>
+			</>
+		);
+	}
+
+	return <Text color="grey">{'   '}unknown address</Text>;
+};
+
+const Entry = ({ address, aliases, selected }: EntryProps) => {
+	const hasAlias = aliases.length > 0;
+
+	return (
+		<Box key={address} flexDirection="column">
+			<Text bold inverse={selected}>
+				{' '}
+				{address}{' '}
+			</Text>
+			{hasAlias ? (
+				<AliasList address={address} aliases={aliases} selected={selected} />
+			) : (
+				<AliasForm address={address} selected={selected} />
+			)}
+		</Box>
+	);
+};
 
 export const AddressBook = () => {
-	const title = 'Address Book [4]';
 	const { isFocused } = useFocus({ id: '4' });
 	const chainId = useChainId();
-	const { addressBook, newAddresses } = useAddressBook();
+	const { addressBook, addressesInProposal, setHighlightedAddress } =
+		useAddressBook();
 	const [selected, setSelected] = React.useState(0);
 
-	const addresses = useMemo(() => {
-		const entries = addressBook[chainId];
-		return [...newAddresses, ...(Object.keys(entries) as Address[])];
-	}, [addressBook, chainId, newAddresses]);
+	const aliases = useMemo(() => {
+		return (address: Address) => {
+			return addressBook[chainId][address] || [];
+		};
+	}, [addressBook, chainId]);
+
+	useEffect(() => {
+		if (!isFocused) {
+			setHighlightedAddress(null);
+		}
+
+		if (selected >= 0 && selected < addressesInProposal.length) {
+			const address = addressesInProposal[selected];
+			setHighlightedAddress(address);
+		}
+	}, [selected, setHighlightedAddress, addressesInProposal, isFocused]);
 
 	useInput(
 		input => {
 			if (input === 'j') {
-				setSelected(Math.min(selected + 1, addresses.length - 1));
+				setSelected(selected =>
+					Math.min(selected + 1, addressesInProposal.length - 1),
+				);
 			} else if (input === 'k') {
-				setSelected(Math.max(selected - 1, 0));
+				setSelected(selected => Math.max(selected - 1, 0));
 			}
 		},
 		{ isActive: isFocused },
 	);
 
 	return (
-		<Box
-			borderStyle="round"
-			borderColor={isFocused ? 'white' : 'grey'}
-			width="100%"
-		>
-			<Box marginLeft={1} marginTop={-1} width={title.length}>
-				<Text bold>{title}</Text>
-			</Box>
-			<Box marginLeft={-1 * title.length - 1} flexDirection="column">
-				<Box flexGrow={1} paddingLeft={0} overflow="hidden">
-					<Box flexDirection="column">
-						{addresses.map((address, index) => (
-							<Text key={address}>
-								<Text bold inverse={isFocused && selected == index}>
-									{' '}
-									{address}{' '}
-								</Text>
-								{newAddresses.indexOf(address) > -1 ? (
-									<>
-										<Newline />
-										<Text color="grey">{'   '}unknown address</Text>
-									</>
-								) : (
-									(addressBook[chainId][address] || []).map(alias => (
-										<>
-											<Newline />
-											<Text key={alias.label}>
-												{'   '}
-												<Text color="green">{alias.label}</Text>
-												{alias.prefered ? ' (prefered)' : ''}
-											</Text>
-										</>
-									))
-								)}
-							</Text>
-						))}
-					</Box>
-				</Box>
-				<Box flexGrow={0} height={2} flexDirection="column">
-					<Text color="grey">{new Array(48).fill('─').join('')}</Text>
-					<Box paddingLeft={1}>
-						<Text>
-							<Text bold>[a]</Text>dd new entry
-						</Text>
-					</Box>
+		<Pane title="Address Book" focusId="4">
+			<Box flexGrow={1} paddingLeft={0} overflow="hidden">
+				<Box flexDirection="column">
+					{addressesInProposal.map((address, index) => (
+						<Entry
+							key={address}
+							address={address}
+							aliases={aliases(address)}
+							selected={selected == index && isFocused}
+						/>
+					))}
 				</Box>
 			</Box>
-		</Box>
+		</Pane>
 	);
 };

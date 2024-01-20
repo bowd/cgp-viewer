@@ -1,0 +1,2 @@
+- Filter addressbook by addresses that came up in proposals
+- Label unknown address

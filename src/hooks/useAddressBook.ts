@@ -47,7 +47,10 @@ export const makeAddressBookContext = () => {
 	);
 	const chainId = useChainId();
 
-	const [newAddresses, setNewAddresses] = useState<Address[]>([]);
+	const [addressesInProposal, setAddressesInProposal] = useState<Address[]>([]);
+	const [highlightedAddress, setHighlightedAddress] = useState<Address | null>(
+		null,
+	);
 
 	useEffect(() => {
 		fs.writeFileSync(
@@ -55,6 +58,29 @@ export const makeAddressBookContext = () => {
 			stringify(addressBook as unknown as JsonMap),
 		);
 	}, [addressBook]);
+
+	const rename = useCallback(
+		(address: Address, oldLabel: string, newLabel: string) => {
+			const aliases = addressBook[chainId]?.[address] ?? [];
+			if (!aliases.find(alias => alias.label === oldLabel)) return;
+			setAddressBook((addressBook: AddressBook) => ({
+				...addressBook,
+				[chainId]: {
+					...addressBook[chainId],
+					[address]: aliases.map(alias => {
+						if (alias.label === oldLabel) {
+							return {
+								...alias,
+								label: newLabel,
+							};
+						}
+						return alias;
+					}),
+				},
+			}));
+		},
+		[setAddressBook, chainId],
+	);
 
 	const add = useCallback(
 		(address: Address, label: string) => {
@@ -105,14 +131,15 @@ export const makeAddressBookContext = () => {
 		[setAddressBook, chainId],
 	);
 
-	logger.info('newAddresses:', newAddresses);
-
 	return {
 		addressBook,
 		add,
+		rename,
 		addBatch,
-		newAddresses,
-		setNewAddresses,
+		addressesInProposal,
+		setAddressesInProposal,
+		highlightedAddress,
+		setHighlightedAddress,
 	};
 };
 
@@ -120,8 +147,15 @@ export const useAddressBook = (): ReturnType<typeof makeAddressBookContext> => {
 	return useContext(AddressBookContext)!;
 };
 
+const appendIfNew =
+	<T>(item: T) =>
+		(items: T[]): T[] => {
+			if (items.indexOf(item) > -1) return items;
+			return [item, ...items];
+		};
+
 export const useAddressBookLabel = (address: Address): string | null => {
-	const { addressBook, setNewAddresses } = useAddressBook();
+	const { addressBook, setAddressesInProposal } = useAddressBook();
 	const chainId = useChainId();
 	const aliases = useMemo(
 		() => addressBook[chainId]?.[address] ?? [],
@@ -129,14 +163,8 @@ export const useAddressBookLabel = (address: Address): string | null => {
 	);
 
 	useEffect(() => {
-		if (aliases.length === 0) {
-			logger.info(address);
-			setNewAddresses(addresses => {
-				if (addresses.indexOf(address) > -1) return addresses;
-				return [...addresses, address];
-			});
-		}
-	}, [address, aliases, setNewAddresses]);
+		setAddressesInProposal(appendIfNew(address));
+	}, [address, setAddressesInProposal]);
 
 	if (aliases.length === 0) {
 		return null;

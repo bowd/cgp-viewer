@@ -43,10 +43,10 @@ export const Argument = ({
 				{new Array(nesting).fill('  ').join('')}
 				{abi.name ? (
 					<>
+						<Text color="grey">{abi.type} </Text>
 						<Text color="yellow" bold>
 							{abi.name}
 						</Text>
-						<Text color="grey">({abi.type})</Text>
 					</>
 				) : (
 					<Text>{abi.type}</Text>
@@ -106,25 +106,34 @@ export const RawTransaction = ({
 export const Transaction = ({
 	transaction,
 	index,
+	selected,
 }: {
 	transaction: IParsedTransaction;
 	index: number;
+	selected: boolean;
 }) => {
 	const title = ` ${index} `;
 	return (
 		<Box
-			borderStyle="round"
+			borderStyle="single"
+			borderBottom={false}
+			borderLeft={false}
+			borderRight={false}
 			width="100%"
 			flexShrink={0}
 			flexGrow={0}
-			borderColor="grey"
+			borderColor={selected ? 'white' : 'grey'}
 			paddingLeft={1}
 			paddingRight={1}
+			flexDirection="column"
+			paddingBottom={1}
 		>
-			<Box marginLeft={-1} marginTop={-1}>
-				<Text color="grey">{title}</Text>
+			<Box marginTop={-1}>
+				<Text color={selected ? 'white' : 'grey'} inverse>
+					{title}
+				</Text>
 			</Box>
-			<Box marginLeft={-1 * title.length + 1}>
+			<Box marginTop={1}>
 				{transaction.parsed === true ? (
 					<ParsedTransaction transaction={transaction} />
 				) : (
