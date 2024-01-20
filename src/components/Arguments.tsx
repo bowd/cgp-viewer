@@ -2,9 +2,10 @@ import React from 'react';
 import { Text } from 'ink';
 import { transactionsService } from '../services/transactions.js';
 import { Address } from 'viem';
-import { useAddressBookLabel } from '../hooks/useAddressBook.js';
+import { useAddressBook, useAddressBookLabel } from '../hooks/useAddressBook.js';
 
 export const ArgAddress = ({ address }: { address: Address }) => {
+	const { highlightedAddress } = useAddressBook();
 	const label = useAddressBookLabel(address);
 
 	if (label) {
@@ -13,11 +14,28 @@ export const ArgAddress = ({ address }: { address: Address }) => {
 				<Text bold color="green">
 					{label}
 				</Text>
-				<Text color="grey">({address})</Text>
+				{highlightedAddress === address ? (
+					<Text color="grey">
+						(
+						<Text bold color="black" backgroundColor="red">
+							{address}
+						</Text>
+						)
+					</Text>
+				) : (
+					<Text color="grey">({address})</Text>
+				)}
 			</>
 		);
 	} else {
-		return <Text>{address}</Text>;
+		if (highlightedAddress === address) {
+			return (
+				<Text bold color="black" backgroundColor="red">
+					{address}
+				</Text>
+			);
+		}
+		return <Text color="white">{address}</Text>;
 	}
 };
 

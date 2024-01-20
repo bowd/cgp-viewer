@@ -61,45 +61,50 @@ export const makeAddressBookContext = () => {
 
 	const rename = useCallback(
 		(address: Address, oldLabel: string, newLabel: string) => {
-			const aliases = addressBook[chainId]?.[address] ?? [];
-			if (!aliases.find(alias => alias.label === oldLabel)) return;
-			setAddressBook((addressBook: AddressBook) => ({
-				...addressBook,
-				[chainId]: {
-					...addressBook[chainId],
-					[address]: aliases.map(alias => {
-						if (alias.label === oldLabel) {
-							return {
-								...alias,
-								label: newLabel,
-							};
-						}
-						return alias;
-					}),
-				},
-			}));
+			setAddressBook((addressBook: AddressBook) => {
+				const aliases = addressBook[chainId]?.[address] ?? [];
+				if (!aliases.find(alias => alias.label === oldLabel)) adddressBook;
+
+				return {
+					...addressBook,
+					[chainId]: {
+						...addressBook[chainId],
+						[address]: aliases.map(alias => {
+							if (alias.label === oldLabel) {
+								return {
+									...alias,
+									label: newLabel,
+								};
+							}
+							return alias;
+						}),
+					},
+				};
+			});
 		},
 		[setAddressBook, chainId],
 	);
 
 	const add = useCallback(
 		(address: Address, label: string) => {
-			const aliases = addressBook[chainId]?.[address] ?? [];
-			if (aliases.find(alias => alias.label === label)) return;
+			setAddressBook((addressBook: AddressBook) => {
+				const aliases = addressBook[chainId]?.[address] ?? [];
+				if (aliases.find(alias => alias.label === label)) return addressBook;
 
-			setAddressBook((addressBook: AddressBook) => ({
-				...addressBook,
-				[chainId]: {
-					...addressBook[chainId],
-					[address]: [
-						...aliases,
-						{
-							label,
-							prefered: false,
-						},
-					],
-				},
-			}));
+				return {
+					...addressBook,
+					[chainId]: {
+						...addressBook[chainId],
+						[address]: [
+							...aliases,
+							{
+								label,
+								prefered: false,
+							},
+						],
+					},
+				};
+			});
 		},
 		[setAddressBook, chainId],
 	);

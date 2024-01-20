@@ -5,6 +5,7 @@ import { useChainId } from 'wagmi';
 import { Address } from 'viem';
 import { Pane } from './Pane.js';
 import { UncontrolledTextInput } from 'ink-text-input';
+import { logger } from '../utils/logger.js';
 
 type EntryProps = {
 	address: Address;
@@ -23,7 +24,10 @@ const AliasList = ({
 }) => {
 	const [formActive, setFormActive] = React.useState(false);
 	const { rename } = useAddressBook();
-	const main = aliases.find(alias => alias.prefered) || aliases[0];
+	const main = useMemo(
+		() => aliases.find(alias => alias.prefered) || aliases[0],
+		[aliases],
+	);
 
 	const onSubmit = useCallback(
 		(label: string) => {
@@ -32,6 +36,7 @@ const AliasList = ({
 				return;
 			}
 			rename(address, main.label, label);
+			setFormActive(false);
 		},
 		[rename, main],
 	);
@@ -155,22 +160,26 @@ export const AddressBook = () => {
 	useEffect(() => {
 		if (!isFocused) {
 			setHighlightedAddress(null);
+			return;
 		}
-
 		if (selected >= 0 && selected < addressesInProposal.length) {
 			const address = addressesInProposal[selected];
 			setHighlightedAddress(address);
+		} else {
+			setHighlightedAddress(null);
 		}
 	}, [selected, setHighlightedAddress, addressesInProposal, isFocused]);
 
 	useInput(
-		input => {
+		(input, key) => {
 			if (input === 'j') {
 				setSelected(selected =>
 					Math.min(selected + 1, addressesInProposal.length - 1),
 				);
 			} else if (input === 'k') {
 				setSelected(selected => Math.max(selected - 1, 0));
+			} else if (key.escape) {
+				setSelected(-1);
 			}
 		},
 		{ isActive: isFocused },
