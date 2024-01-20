@@ -63,7 +63,8 @@ export const makeAddressBookContext = () => {
 		(address: Address, oldLabel: string, newLabel: string) => {
 			setAddressBook((addressBook: AddressBook) => {
 				const aliases = addressBook[chainId]?.[address] ?? [];
-				if (!aliases.find(alias => alias.label === oldLabel)) adddressBook;
+				if (!aliases.find(alias => alias.label === oldLabel))
+					return addressBook;
 
 				return {
 					...addressBook,
