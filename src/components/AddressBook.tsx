@@ -2,24 +2,23 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { Text, Box, useFocus, useInput } from 'ink';
 import { Alias, useAddressBook } from '../hooks/useAddressBook.js';
 import { useChainId } from 'wagmi';
-import { Address } from 'viem';
+import { Hex } from 'viem';
 import { Pane } from './Pane.js';
 import { UncontrolledTextInput } from 'ink-text-input';
-import { logger } from '../utils/logger.js';
 
 type EntryProps = {
-	address: Address;
+	identifier: Hex;
 	aliases: Alias[];
 	selected: boolean;
 };
 
 const AliasList = ({
 	aliases,
-	address,
+	identifier,
 	selected,
 }: {
 	aliases: Alias[];
-	address: Address;
+	identifier: Hex;
 	selected: boolean;
 }) => {
 	const [formActive, setFormActive] = React.useState(false);
@@ -35,7 +34,7 @@ const AliasList = ({
 				setFormActive(false);
 				return;
 			}
-			rename(address, main.label, label);
+			rename(identifier, main.label, label);
 			setFormActive(false);
 		},
 		[rename, main],
@@ -68,24 +67,19 @@ const AliasList = ({
 
 	return (
 		<>
-			{aliases.map(alias => (
-				<>
-					<Text key={alias.label}>
-						{'   '}
-						<Text color="green">{alias.label}</Text>
-						{alias.prefered ? ' (prefered)' : ''}
-					</Text>
-				</>
-			))}
+			<Text>
+				{'   '}
+				<Text color="green">{main.label}</Text>
+			</Text>
 		</>
 	);
 };
 
 const AliasForm = ({
-	address,
+	identifier,
 	selected,
 }: {
-	address: Address;
+	identifier: Hex;
 	selected: boolean;
 }) => {
 	const [formActive, setFormActive] = React.useState(false);
@@ -96,7 +90,7 @@ const AliasForm = ({
 				setFormActive(false);
 				return;
 			}
-			add(address, label);
+			add(identifier, label);
 		},
 		[add],
 	);
@@ -123,37 +117,49 @@ const AliasForm = ({
 		);
 	}
 
-	return <Text color="grey">{'   '}unknown address</Text>;
+	return <Text color="grey">{'   '}unknown identifier</Text>;
 };
 
-const Entry = ({ address, aliases, selected }: EntryProps) => {
+const Entry = ({ identifier, aliases, selected }: EntryProps) => {
 	const hasAlias = aliases.length > 0;
+	const display =
+		identifier.length > 42 ? identifier.slice(0, 39) + '...' : identifier;
 
 	return (
-		<Box key={address} flexDirection="column">
-			<Text bold inverse={selected}>
+		<Box key={identifier} flexDirection="column">
+			<Text bold color={selected ? 'blue' : 'white'} inverse={selected}>
 				{' '}
-				{address}{' '}
+				{display}{' '}
 			</Text>
 			{hasAlias ? (
-				<AliasList address={address} aliases={aliases} selected={selected} />
+				<AliasList
+					identifier={identifier}
+					aliases={aliases}
+					selected={selected}
+				/>
 			) : (
-				<AliasForm address={address} selected={selected} />
+				<AliasForm identifier={identifier} selected={selected} />
 			)}
 		</Box>
 	);
 };
 
-export const AddressBook = () => {
+export const AddressBook = ({
+	height,
+	width,
+}: {
+	height: number;
+	width: number;
+}) => {
 	const { isFocused } = useFocus({ id: '4' });
 	const chainId = useChainId();
-	const { addressBook, addressesInProposal, setHighlightedAddress } =
+	const { addressBook, identifiersInProposal, setHighlightedIdentifier } =
 		useAddressBook();
 	const [selected, setSelected] = React.useState(0);
 
 	const aliases = useMemo(() => {
-		return (address: Address) => {
-			return addressBook[chainId][address] || [];
+		return (identifier: Hex) => {
+			return addressBook[chainId][identifier] || [];
 		};
 	}, [addressBook, chainId]);
 
@@ -161,19 +167,19 @@ export const AddressBook = () => {
 		if (!isFocused) {
 			return;
 		}
-		if (selected >= 0 && selected < addressesInProposal.length) {
-			const address = addressesInProposal[selected];
-			setHighlightedAddress(address);
+		if (selected >= 0 && selected < identifiersInProposal.length) {
+			const identifier = identifiersInProposal[selected];
+			setHighlightedIdentifier(identifier);
 		} else {
-			setHighlightedAddress(null);
+			setHighlightedIdentifier(null);
 		}
-	}, [selected, setHighlightedAddress, addressesInProposal, isFocused]);
+	}, [selected, setHighlightedIdentifier, identifiersInProposal, isFocused]);
 
 	useInput(
 		(input, key) => {
 			if (input === 'j') {
 				setSelected(selected =>
-					Math.min(selected + 1, addressesInProposal.length - 1),
+					Math.min(selected + 1, identifiersInProposal.length - 1),
 				);
 			} else if (input === 'k') {
 				setSelected(selected => Math.max(selected - 1, 0));
@@ -184,18 +190,23 @@ export const AddressBook = () => {
 		{ isActive: isFocused },
 	);
 
+	const maxShown = Math.floor((height - 2) / 2);
+	const offset = Math.max(selected - maxShown + 1, 0);
+
 	return (
-		<Pane title="Address Book" focusId="4">
-			<Box flexGrow={1} paddingLeft={0} overflow="hidden">
-				<Box flexDirection="column">
-					{addressesInProposal.map((address, index) => (
-						<Entry
-							key={address}
-							address={address}
-							aliases={aliases(address)}
-							selected={selected == index && isFocused}
-						/>
-					))}
+		<Pane title="identifier Book" focusId="4" height={height} width={width}>
+			<Box overflow="hidden">
+				<Box flexDirection="column" width={width}>
+					{identifiersInProposal
+						.slice(offset, offset + maxShown)
+						.map((identifier, index) => (
+							<Entry
+								key={identifier}
+								identifier={identifier}
+								aliases={aliases(identifier)}
+								selected={selected == index + offset}
+							/>
+						))}
 				</Box>
 			</Box>
 		</Pane>

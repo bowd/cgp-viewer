@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, Box, Newline } from 'ink';
 import { IParsedTransaction } from '../services/transactions.js';
-import { ArgAddress, Argument } from './Arguments.js';
+import { ArgHex, Argument } from './Arguments.js';
 
 export const ParsedTransaction = ({
 	transaction: tx,
@@ -10,7 +10,7 @@ export const ParsedTransaction = ({
 }) => {
 	return (
 		<Text>
-			<ArgAddress address={tx.to.address} />.
+			<ArgHex value={tx.to.address} />.
 			<Text color="yellow">{tx.functionName}</Text>
 			<Text color="grey"> {tx.signature} </Text>
 			(

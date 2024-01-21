@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { JsonMap, parse, stringify } from '@iarna/toml';
 import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { useChainId } from 'wagmi';
-import { Address } from 'viem';
+import { Address, Hex } from 'viem';
 import { addressbook as defaultAddressbook } from '../utils/default.addressbook.js';
 import { logger } from '../utils/logger.js';
 import { AddressBookContext } from './AddressBookProvider.js';
@@ -20,7 +20,7 @@ export interface Alias {
 	prefered: boolean;
 }
 
-export type AddressBook = Record<number, Record<Address, Alias[]>>;
+export type AddressBook = Record<number, Record<Hex, Alias[]>>;
 
 let _initialAddressBook: AddressBook | null = null;
 
@@ -47,10 +47,9 @@ export const makeAddressBookContext = () => {
 	);
 	const chainId = useChainId();
 
-	const [addressesInProposal, setAddressesInProposal] = useState<Address[]>([]);
-	const [highlightedAddress, setHighlightedAddress] = useState<Address | null>(
-		null,
-	);
+	const [identifiersInProposal, setIdentifiersInProposal] = useState<Hex[]>([]);
+	const [highlightedIdentifier, setHighlightedIdentifier] =
+		useState<Hex | null>(null);
 
 	useEffect(() => {
 		fs.writeFileSync(
@@ -60,9 +59,9 @@ export const makeAddressBookContext = () => {
 	}, [addressBook]);
 
 	const rename = useCallback(
-		(address: Address, oldLabel: string, newLabel: string) => {
+		(identifier: Hex, oldLabel: string, newLabel: string) => {
 			setAddressBook((addressBook: AddressBook) => {
-				const aliases = addressBook[chainId]?.[address] ?? [];
+				const aliases = addressBook[chainId]?.[identifier] ?? [];
 				if (!aliases.find(alias => alias.label === oldLabel))
 					return addressBook;
 
@@ -70,7 +69,7 @@ export const makeAddressBookContext = () => {
 					...addressBook,
 					[chainId]: {
 						...addressBook[chainId],
-						[address]: aliases.map(alias => {
+						[identifier]: aliases.map(alias => {
 							if (alias.label === oldLabel) {
 								return {
 									...alias,
@@ -87,16 +86,16 @@ export const makeAddressBookContext = () => {
 	);
 
 	const add = useCallback(
-		(address: Address, label: string) => {
+		(identifier: Hex, label: string) => {
 			setAddressBook((addressBook: AddressBook) => {
-				const aliases = addressBook[chainId]?.[address] ?? [];
+				const aliases = addressBook[chainId]?.[identifier] ?? [];
 				if (aliases.find(alias => alias.label === label)) return addressBook;
 
 				return {
 					...addressBook,
 					[chainId]: {
 						...addressBook[chainId],
-						[address]: [
+						[identifier]: [
 							...aliases,
 							{
 								label,
@@ -111,17 +110,16 @@ export const makeAddressBookContext = () => {
 	);
 
 	const addBatch = useCallback(
-		(batch: Array<{ address: Address; label: string }>) => {
-			logger.info(batch);
+		(batch: Array<{ identifier: Hex; label: string }>) => {
 			setAddressBook(addressBook => {
 				const newAddressBook = { ...addressBook };
-				for (const { address, label } of batch) {
-					const aliases = newAddressBook[chainId]?.[address] ?? [];
+				for (const { identifier, label } of batch) {
+					const aliases = newAddressBook[chainId]?.[identifier] ?? [];
 					if (aliases.find(alias => alias.label === label)) continue;
 
 					newAddressBook[chainId] = {
 						...newAddressBook[chainId],
-						[address]: [
+						[identifier]: [
 							...aliases,
 							{
 								label,
@@ -142,10 +140,10 @@ export const makeAddressBookContext = () => {
 		add,
 		rename,
 		addBatch,
-		addressesInProposal,
-		setAddressesInProposal,
-		highlightedAddress,
-		setHighlightedAddress,
+		identifiersInProposal,
+		setIdentifiersInProposal,
+		highlightedIdentifier,
+		setHighlightedIdentifier,
 	};
 };
 
@@ -161,7 +159,7 @@ const appendIfNew =
 		};
 
 export const useAddressBookLabel = (address: Address): string | null => {
-	const { addressBook, setAddressesInProposal } = useAddressBook();
+	const { addressBook, setIdentifiersInProposal } = useAddressBook();
 	const chainId = useChainId();
 	const aliases = useMemo(
 		() => addressBook[chainId]?.[address] ?? [],
@@ -169,8 +167,8 @@ export const useAddressBookLabel = (address: Address): string | null => {
 	);
 
 	useEffect(() => {
-		setAddressesInProposal(appendIfNew(address));
-	}, [address, setAddressesInProposal]);
+		setIdentifiersInProposal(appendIfNew(address));
+	}, [address, setIdentifiersInProposal]);
 
 	if (aliases.length === 0) {
 		return null;

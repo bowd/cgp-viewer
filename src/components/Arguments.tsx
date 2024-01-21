@@ -1,12 +1,13 @@
 import React from 'react';
 import { Newline, Text } from 'ink';
 import { transactionsService } from '../services/transactions.js';
-import { AbiParameter, Address } from 'viem';
+import { AbiParameter, Address, Hex } from 'viem';
 import { useAddressBook, useAddressBookLabel } from '../hooks/useAddressBook.js';
+import { logger } from '../utils/logger.js';
 
-export const ArgAddress = ({ address }: { address: Address }) => {
-	const { highlightedAddress } = useAddressBook();
-	const label = useAddressBookLabel(address);
+export const ArgHex = ({ value }: { value: Hex }) => {
+	const { highlightedIdentifier } = useAddressBook();
+	const label = useAddressBookLabel(value);
 
 	if (label) {
 		return (
@@ -14,50 +15,146 @@ export const ArgAddress = ({ address }: { address: Address }) => {
 				<Text bold color="green">
 					{label}
 				</Text>
-				{highlightedAddress === address ? (
+				{highlightedIdentifier === value ? (
 					<Text color="grey">
 						(
 						<Text bold color="black" backgroundColor="blue">
-							{address}
+							{value}
 						</Text>
 						)
 					</Text>
 				) : (
-					<Text color="grey">({address})</Text>
+					<Text color="grey">({value})</Text>
 				)}
 			</>
 		);
 	} else {
-		if (highlightedAddress === address) {
+		if (highlightedIdentifier === value) {
 			return (
 				<Text bold color="black" backgroundColor="blue">
-					{address}
+					{value}
 				</Text>
 			);
 		}
-		return <Text color="white">{address}</Text>;
+		return <Text color="white">{value}</Text>;
 	}
 };
 
 export const ArgNumber = ({ number }: { number: bigint }) => {
-	const scale = BigInt(10) ** BigInt(12);
-	if (number > scale) {
-		const scaled = Number(number / scale) / 1e6;
-		return (
-			<>
-				<Text color="yellow" bold>
-					{scaled} * 1e18
-				</Text>{' '}
-				<Text color="grey">{number.toString()}</Text>
-			</>
-		);
+	const scale18 = BigInt(10) ** BigInt(12);
+	const scaled18 = Number(BigInt(number) / scale18) / 1e6;
+
+	const scale24 = BigInt(10) ** BigInt(18);
+	const scaled24 = Number(BigInt(number) / scale24) / 1e6;
+
+	return (
+		<>
+			{number > scale18 ? (
+				<Text>
+					<Text color="cyanBright" bold>
+						{scaled18} * 1e18{' '}
+					</Text>
+					|{' '}
+				</Text>
+			) : null}
+			{number > scale24 ? (
+				<Text>
+					<Text color="magenta" bold>
+						{scaled24} * 1e24{' '}
+					</Text>
+					|{' '}
+				</Text>
+			) : null}
+			<Text
+				color={
+					number < scale18 ? (number == BigInt(0) ? 'red' : 'white') : 'grey'
+				}
+			>
+				{number.toString()}
+			</Text>
+		</>
+	);
+};
+
+export const ArgArray = ({
+	value,
+	abi,
+	nesting,
+}: {
+	value: unknown[];
+	abi: AbiParameter;
+	nesting: number;
+}) => {
+	return (
+		<>
+			<Text>[</Text>
+			<Newline />
+			{((value as unknown[]) || []).map((subvalue, index) => (
+				<>
+					<Argument
+						index={index}
+						key={index}
+						value={subvalue}
+						abi={{
+							...abi,
+							type: abi.type.replace(ArrayReg, ''),
+							name: `[${index}]`,
+						}}
+						nesting={nesting + 1}
+					/>
+					<Newline />
+				</>
+			))}
+			<Text>{new Array(nesting).fill('  ').join('')}]</Text>
+		</>
+	);
+};
+
+const tupleGet = (
+	value: unknown[] | Record<string, unknown>,
+	name: string,
+	index: number,
+) => {
+	if (Array.isArray(value)) {
+		return value[index];
 	} else {
-		return <Text>{number.toString()}</Text>;
+		return value[name];
 	}
 };
 
+export const ArgTuple = ({
+	value,
+	abi,
+	nesting,
+}: {
+	value: unknown[] | Record<string, unknown>;
+	abi: AbiParameter & { components: AbiParameter[] };
+	nesting: number;
+}) => {
+	return (
+		<>
+			<Text>[</Text>
+			<Newline />
+			{abi.components.map((subAbi, index) => (
+				<>
+					<Argument
+						index={index}
+						key={index}
+						value={tupleGet(value, subAbi.name!, index)}
+						abi={subAbi}
+						nesting={nesting + 1}
+					/>
+					<Newline />
+				</>
+			))}
+			<Text>{new Array(nesting).fill('  ').join('')}]</Text>
+		</>
+	);
+};
+
+const ArrayReg = /\[\d*\]$/;
 const isArray = (type: string) => {
-	return type.indexOf('[]') > -1;
+	return ArrayReg.exec(type) !== null;
 };
 
 const isNumericType = (type: string) => {
@@ -76,36 +173,35 @@ export const ArgumentValue = ({
 	nesting: number;
 }) => {
 	if (abi.type === 'address') {
-		return <ArgAddress address={value as Address} />;
+		return <ArgHex value={value as Address} />;
 	} else if (isNumericType(abi.type)) {
 		return <ArgNumber number={value as bigint} />;
+	} else if (abi.type === 'bytes32') {
+		return <ArgHex value={value as Hex} />;
 	} else if (isArray(abi.type)) {
+		return <ArgArray value={value as unknown[]} abi={abi} nesting={nesting} />;
+	} else if (abi.type === 'tuple') {
 		return (
-			<>
-				<Text>[</Text>
-				<Newline />
-				{((value as unknown[]) || []).map((subvalue, index) => (
-					<>
-						<Argument
-							index={index}
-							key={index}
-							value={subvalue}
-							abi={{
-								...abi,
-								type: abi.type.replace('[]', ''),
-								name: `[${index}]`,
-							}}
-							nesting={nesting + 1}
-						/>
-						<Newline />
-					</>
-				))}
-				<Text>{new Array(nesting).fill('  ').join('')}]</Text>
-			</>
+			<ArgTuple
+				value={value as unknown[]}
+				abi={abi as AbiParameter & { components: AbiParameter[] }}
+				nesting={nesting}
+			/>
 		);
+	} else if (abi.type === 'bool') {
+		return <Text>{value ? 'true' : 'false'}</Text>;
 	}
 
 	return <Text>TODO: parse {abi.type}</Text>;
+};
+
+const abiType = (abi: AbiParameter) => {
+	if (abi.type === 'tuple') {
+		if (abi.internalType) {
+			return abi.internalType.replace('struct ', '');
+		}
+	}
+	return abi.type;
 };
 
 export const Argument = ({
@@ -124,13 +220,13 @@ export const Argument = ({
 				{new Array(nesting).fill('  ').join('')}
 				{abi.name ? (
 					<>
-						<Text color="grey">{abi.type} </Text>
+						<Text color="grey">{abiType(abi)} </Text>
 						<Text color="yellow" bold>
 							{abi.name}
 						</Text>
 					</>
 				) : (
-					<Text>{abi.type}</Text>
+					<Text>{abiType(abi)}</Text>
 				)}{' '}
 				={' '}
 			</Text>

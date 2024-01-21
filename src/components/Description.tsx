@@ -17,7 +17,7 @@ type Props = {
 
 const Markdown = ({ children, ...options }: Props) => {
 	const [width] = useStdoutDimensions();
-	const { highlightedAddress } = useAddressBook();
+	const { highlightedIdentifier } = useAddressBook();
 
 	setOptions({
 		renderer: new TerminalRenderer({
@@ -34,20 +34,20 @@ const Markdown = ({ children, ...options }: Props) => {
 			.join('\n')
 			.trim();
 
-		if (highlightedAddress) {
+		if (highlightedIdentifier) {
 			return text
 				.replace(
-					highlightedAddress,
-					`\x1b[44m\x1b[30m\x1b[1m${highlightedAddress}\x1b[0m`,
+					highlightedIdentifier,
+					`\x1b[44m\x1b[30m\x1b[1m${highlightedIdentifier}\x1b[0m`,
 				)
 				.replace(
-					highlightedAddress.toLowerCase(),
-					`\x1b[44m[\x1b30m\x1b[1m${highlightedAddress.toLowerCase()}\x1b[0m`,
+					highlightedIdentifier.toLowerCase(),
+					`\x1b[44m[\x1b30m\x1b[1m${highlightedIdentifier.toLowerCase()}\x1b[0m`,
 				);
 		}
 
 		return text;
-	}, [parse, children, highlightedAddress]);
+	}, [parse, children, highlightedIdentifier]);
 
 	return <Text>{parsed}</Text>;
 };

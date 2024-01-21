@@ -71,11 +71,13 @@ export const Proposal = ({ id }: { id: number }) => {
 			<Box width={width - addressBookWidth} flexDirection="column">
 				<Metadata proposal={proposal} height={METADATA_HEIGHT} />
 				<Description proposal={proposal} height={descriptionHeight} />
-				<Transactions proposal={proposal} height={transactionsHeight} />
+				<Transactions
+					proposal={proposal}
+					height={transactionsHeight}
+					width={width - addressBookWidth}
+				/>
 			</Box>
-			<Box width={addressBookWidth}>
-				<AddressBook />
-			</Box>
+			<AddressBook height={height - STATUS_HEIGHT} width={addressBookWidth} />
 		</Box>
 	);
 };

@@ -12,10 +12,12 @@ const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
 	const { addBatch } = useAddressBook();
 	useEffect(() => {
 		addBatch(
-			Array.from(transactionsService.contractNames).map(([address, label]) => ({
-				address,
-				label,
-			})),
+			Array.from(transactionsService.contractNames).map(
+				([identifier, label]) => ({
+					identifier,
+					label,
+				}),
+			),
 		);
 	}, [transactionsService.contractNames, addBatch]);
 
@@ -61,25 +63,27 @@ const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
 	);
 };
 
-const Loading = () => {
-	return (
-		<Text bold color="green">
-			Loading <Spinner type="dots" />
-		</Text>
-	);
-};
-
 export const Transactions = ({
 	proposal,
 	height,
+	width,
 }: {
 	proposal: IProposal;
 	height: number;
+	width: number;
 }) => {
 	return (
 		<Pane title="Transactions" focusId="3" height={height}>
 			<Box overflow="hidden" height={height - 2}>
-				<Suspense fallback={<Loading />}>
+				<Suspense
+					fallback={
+						<Box marginTop={(height - 3) / 2} marginLeft={width / 2 - 10}>
+							<Text bold color="green">
+								Parsing transactions <Spinner type="dots" />
+							</Text>
+						</Box>
+					}
+				>
 					<TransactionsList proposal={proposal} />
 				</Suspense>
 			</Box>
