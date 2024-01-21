@@ -11,7 +11,7 @@ export const StatusBar = () => {
 	const nodeURL = client.transport['url'].split('//')[1];
 
 	return (
-		<Pane title="Info" width={width} borderStyle="round">
+		<Pane title="Info" width={width}>
 			<Box alignItems="center" flexGrow={1}>
 				<Box flexGrow={0}>
 					<Text> 📡 </Text>
