@@ -15,5 +15,11 @@ export const addressbook: AddressBook = {
 				prefered: true,
 			},
 		],
+		'0x0000000000000000000000000000000000000000': [
+			{
+				label: 'Zero',
+				prefered: true,
+			},
+		],
 	},
 };

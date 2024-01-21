@@ -42,8 +42,8 @@ const AliasList = ({
 	);
 
 	useInput(
-		(_, key) => {
-			if (key.return) {
+		(input, key) => {
+			if (key.return || input === 'e') {
 				setFormActive(true);
 			}
 		},
@@ -103,12 +103,12 @@ const AliasForm = ({
 
 	useInput(
 		(_, key) => {
-			if (key.return && !formActive) {
+			if (key.return || input === 'e') {
 				setFormActive(true);
 			}
 		},
 		{
-			isActive: selected,
+			isActive: selected && !formActive,
 		},
 	);
 
@@ -116,7 +116,7 @@ const AliasForm = ({
 		return (
 			<>
 				<Box flexDirection="row">
-					<Text>{'   '}label: </Text>
+					<Text color="grey">{'   '}label: </Text>
 					<UncontrolledTextInput onSubmit={onSubmit} />
 				</Box>
 			</>

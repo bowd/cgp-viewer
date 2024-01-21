@@ -75,8 +75,8 @@ export const Description = ({
 
 	return (
 		<Pane title="Description" focusId="2" height={height}>
-			<Box overflow="hidden" padding={1}>
-				<Box flexShrink={0} flexDirection="column" marginTop={-scrollTop}>
+			<Box overflow="hidden" height={height - 2}>
+				<Box marginTop={-scrollTop}>
 					<Markdown>{proposal.description}</Markdown>
 				</Box>
 			</Box>

@@ -31,9 +31,7 @@ export const Pane = (props: PaneProps) => {
 					{title}
 				</Text>
 			</Box>
-			<Box overflow="hidden" flexDirection="column">
-				{children}
-			</Box>
+			<Box flexDirection="column">{children}</Box>
 		</Box>
 	);
 };

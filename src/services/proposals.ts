@@ -143,6 +143,7 @@ class ProposalService {
 		const callWithError = response.filter(r => r.status === 'failure');
 		if (callWithError.length > 0) {
 			logger.info(response.map(r => r.status));
+			console.error('Failed to load proposal, are you sure it exists?');
 			throw 'Failed to load proposal';
 		}
 

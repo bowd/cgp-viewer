@@ -20,7 +20,7 @@ export const StatusBar = () => {
 				</Box>
 				<Box flexGrow={1}></Box>
 				<Box flexGrow={0}>
-					<Text bold>1/2/3</Text>
+					<Text bold>1/2/3/4</Text>
 					<Text> to switch tabs</Text>
 					<Text> | </Text>
 					<Text bold>q</Text>
@@ -30,7 +30,10 @@ export const StatusBar = () => {
 					<Text> to scroll</Text>
 					<Text> | </Text>
 					<Text bold>z</Text>
-					<Text> to zoom </Text>
+					<Text> to zoom</Text>
+					<Text> | </Text>
+					<Text bold>ENTER</Text>
+					<Text> to edit or set label </Text>
 				</Box>
 			</Box>
 		</Pane>

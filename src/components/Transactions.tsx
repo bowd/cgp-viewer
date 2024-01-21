@@ -78,7 +78,7 @@ export const Transactions = ({
 }) => {
 	return (
 		<Pane title="Transactions" focusId="3" height={height}>
-			<Box overflow="hidden" padding={1}>
+			<Box overflow="hidden" height={height - 2}>
 				<Suspense fallback={<Loading />}>
 					<TransactionsList proposal={proposal} />
 				</Suspense>
