@@ -102,7 +102,7 @@ const AliasForm = ({
 	);
 
 	useInput(
-		(_, key) => {
+		(input, key) => {
 			if (key.return || input === 'e') {
 				setFormActive(true);
 			}
