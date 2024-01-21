@@ -69,15 +69,20 @@ export const makeAddressBookContext = () => {
 					...addressBook,
 					[chainId]: {
 						...addressBook[chainId],
-						[identifier]: aliases.map(alias => {
-							if (alias.label === oldLabel) {
-								return {
-									...alias,
-									label: newLabel,
-								};
-							}
-							return alias;
-						}),
+						[identifier]: aliases
+							.map(alias => {
+								if (alias.label === oldLabel) {
+									if (newLabel === '') {
+										return null;
+									}
+									return {
+										...alias,
+										label: newLabel,
+									};
+								}
+								return alias;
+							})
+							.filter(Boolean),
 					},
 				};
 			});

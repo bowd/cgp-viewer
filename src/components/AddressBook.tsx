@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { Text, Box, useFocus, useInput } from 'ink';
+import { Text, Box, useFocus, useInput, useFocusManager } from 'ink';
 import { Alias, useAddressBook } from '../hooks/useAddressBook.js';
 import { useChainId } from 'wagmi';
 import { Hex } from 'viem';
@@ -21,6 +21,8 @@ const AliasList = ({
 	identifier: Hex;
 	selected: boolean;
 }) => {
+	useFocus({ id: 'form' });
+	const { focus } = useFocusManager();
 	const [formActive, setFormActive] = React.useState(false);
 	const { rename } = useAddressBook();
 	const main = useMemo(
@@ -32,10 +34,12 @@ const AliasList = ({
 		(label: string) => {
 			if (label === main.label) {
 				setFormActive(false);
+				focus('4');
 				return;
 			}
 			rename(identifier, main.label, label);
 			setFormActive(false);
+			focus('4');
 		},
 		[rename, main],
 	);
@@ -43,6 +47,7 @@ const AliasList = ({
 	useInput(
 		(input, key) => {
 			if (key.return || input === 'e') {
+				focus('form');
 				setFormActive(true);
 			}
 		},
@@ -55,7 +60,7 @@ const AliasList = ({
 		return (
 			<>
 				<Box flexDirection="row">
-					<Text color="grey">{'   '}label: </Text>
+					<Text color="yellow">{'   '}label: </Text>
 					<UncontrolledTextInput
 						initialValue={main.label}
 						onSubmit={onSubmit}
@@ -82,15 +87,20 @@ const AliasForm = ({
 	identifier: Hex;
 	selected: boolean;
 }) => {
+	useFocus({ id: 'form' });
+	const { focus } = useFocusManager();
 	const [formActive, setFormActive] = React.useState(false);
 	const { add } = useAddressBook();
 	const onSubmit = useCallback(
 		(label: string) => {
 			if (label === '') {
 				setFormActive(false);
+				focus('4');
 				return;
 			}
 			add(identifier, label);
+			setFormActive(false);
+			focus('4');
 		},
 		[add],
 	);
@@ -99,6 +109,7 @@ const AliasForm = ({
 		(input, key) => {
 			if (key.return || input === 'e') {
 				setFormActive(true);
+				focus('form');
 			}
 		},
 		{
@@ -110,7 +121,7 @@ const AliasForm = ({
 		return (
 			<>
 				<Box flexDirection="row">
-					<Text color="grey">{'   '}label: </Text>
+					<Text color="yellow">{'   '}label: </Text>
 					<UncontrolledTextInput onSubmit={onSubmit} />
 				</Box>
 			</>
