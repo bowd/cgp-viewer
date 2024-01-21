@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'ink';
+import { Newline, Text } from 'ink';
 import { transactionsService } from '../services/transactions.js';
 import { AbiParameter, Address } from 'viem';
 import { useAddressBook, useAddressBookLabel } from '../hooks/useAddressBook.js';
@@ -79,6 +79,30 @@ export const ArgumentValue = ({
 		return <ArgAddress address={value as Address} />;
 	} else if (isNumericType(abi.type)) {
 		return <ArgNumber number={value as bigint} />;
+	} else if (isArray(abi.type)) {
+		return (
+			<>
+				<Text>[</Text>
+				<Newline />
+				{((value as unknown[]) || []).map((subvalue, index) => (
+					<>
+						<Argument
+							index={index}
+							key={index}
+							value={subvalue}
+							abi={{
+								...abi,
+								type: abi.type.replace('[]', ''),
+								name: `[${index}]`,
+							}}
+							nesting={nesting + 1}
+						/>
+						<Newline />
+					</>
+				))}
+				<Text>{new Array(nesting).fill('  ').join('')}]</Text>
+			</>
+		);
 	}
 
 	return <Text>TODO: parse {abi.type}</Text>;
