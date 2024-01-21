@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'ink';
 import { transactionsService } from '../services/transactions.js';
-import { Address } from 'viem';
+import { AbiParameter, Address } from 'viem';
 import { useAddressBook, useAddressBookLabel } from '../hooks/useAddressBook.js';
 
 export const ArgAddress = ({ address }: { address: Address }) => {
@@ -54,4 +54,63 @@ export const ArgNumber = ({ number }: { number: bigint }) => {
 	} else {
 		return <Text>{number.toString()}</Text>;
 	}
+};
+
+const isArray = (type: string) => {
+	return type.indexOf('[]') > -1;
+};
+
+const isNumericType = (type: string) => {
+	return (
+		!isArray(type) && (type.indexOf('uint') === 0 || type.indexOf('int') === 0)
+	);
+};
+
+export const ArgumentValue = ({
+	value,
+	abi,
+	nesting,
+}: {
+	value: unknown;
+	abi: AbiParameter;
+	nesting: number;
+}) => {
+	if (abi.type === 'address') {
+		return <ArgAddress address={value as Address} />;
+	} else if (isNumericType(abi.type)) {
+		return <ArgNumber number={value as bigint} />;
+	}
+
+	return <Text>TODO: parse {abi.type}</Text>;
+};
+
+export const Argument = ({
+	value,
+	abi,
+	nesting,
+}: {
+	value: unknown;
+	index: number;
+	abi: AbiParameter;
+	nesting: number;
+}) => {
+	return (
+		<>
+			<Text>
+				{new Array(nesting).fill('  ').join('')}
+				{abi.name ? (
+					<>
+						<Text color="grey">{abi.type} </Text>
+						<Text color="yellow" bold>
+							{abi.name}
+						</Text>
+					</>
+				) : (
+					<Text>{abi.type}</Text>
+				)}{' '}
+				={' '}
+			</Text>
+			<ArgumentValue value={value} abi={abi} nesting={nesting} />
+		</>
+	);
 };

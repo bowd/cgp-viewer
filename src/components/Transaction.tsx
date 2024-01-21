@@ -1,62 +1,7 @@
 import React from 'react';
-import { ITransaction } from '../services/proposals.js';
 import { Text, Box, Newline } from 'ink';
 import { IParsedTransaction } from '../services/transactions.js';
-import { ArgAddress, ArgNumber } from './Arguments.js';
-import { AbiParameter, Address } from 'viem';
-
-const isNumericType = (type: string) => {
-	return type.indexOf('uint') === 0 || type.indexOf('int') === 0;
-};
-
-export const ArgumentValue = ({
-	value,
-	abi,
-	nesting,
-}: {
-	value: unknown;
-	abi: AbiParameter;
-	nesting: number;
-}) => {
-	if (abi.type === 'address') {
-		return <ArgAddress address={value as Address} />;
-	} else if (isNumericType(abi.type)) {
-		return <ArgNumber number={value as bigint} />;
-	}
-
-	return <Text>TODO: parse {abi.type}</Text>;
-};
-
-export const Argument = ({
-	value,
-	abi,
-	nesting,
-}: {
-	value: unknown;
-	index: number;
-	abi: AbiParameter;
-	nesting: number;
-}) => {
-	return (
-		<>
-			<Text>
-				{new Array(nesting).fill('  ').join('')}
-				{abi.name ? (
-					<>
-						<Text color="grey">{abi.type} </Text>
-						<Text color="yellow" bold>
-							{abi.name}
-						</Text>
-					</>
-				) : (
-					<Text>{abi.type}</Text>
-				)}{' '}
-				={' '}
-			</Text>
-			<ArgumentValue value={value} abi={abi} nesting={nesting} />
-		</>
-	);
-};
+import { ArgAddress, Argument } from './Arguments.js';
 
 export const ParsedTransaction = ({
 	transaction: tx,
