@@ -5,11 +5,15 @@ import { AbiParameter, Address, Hex } from 'viem';
 import { useAddressBook, useAddressBookLabel } from '../hooks/useAddressBook.js';
 import { logger } from '../utils/logger.js';
 
-export const ArgHex = ({ value }: { value: Hex }) => {
+export const ArgHex = ({ value, summary }: { value: Hex; summary?: boolean }) => {
 	const { highlightedIdentifier } = useAddressBook();
 	const label = useAddressBookLabel(value);
 
 	if (label) {
+		if (summary) {
+			return <Text>{label}</Text>;
+		}
+
 		return (
 			<>
 				<Text bold color="green">
@@ -29,6 +33,9 @@ export const ArgHex = ({ value }: { value: Hex }) => {
 			</>
 		);
 	} else {
+		if (summary) {
+			return <Text>{value.slice(0, 10)}...</Text>;
+		}
 		if (highlightedIdentifier === value) {
 			return (
 				<Text bold color="black" backgroundColor="blue">
@@ -40,16 +47,30 @@ export const ArgHex = ({ value }: { value: Hex }) => {
 	}
 };
 
-export const ArgNumber = ({ number }: { number: bigint }) => {
+export const ArgNumber = ({
+	value,
+	summary,
+}: {
+	value: bigint;
+	summary?: boolean;
+}) => {
 	const scale18 = BigInt(10) ** BigInt(12);
-	const scaled18 = Number(BigInt(number) / scale18) / 1e6;
+	const scaled18 = Number(BigInt(value) / scale18) / 1e6;
 
 	const scale24 = BigInt(10) ** BigInt(18);
-	const scaled24 = Number(BigInt(number) / scale24) / 1e6;
+	const scaled24 = Number(BigInt(value) / scale24) / 1e6;
+
+	if (summary) {
+		if (value > scale18) {
+			return <Text>{scaled18} * 1e18</Text>;
+		} else {
+			return value.toString();
+		}
+	}
 
 	return (
 		<>
-			{number > scale18 ? (
+			{value > scale18 ? (
 				<Text>
 					<Text color="cyanBright" bold>
 						{scaled18} * 1e18{' '}
@@ -57,7 +78,7 @@ export const ArgNumber = ({ number }: { number: bigint }) => {
 					|{' '}
 				</Text>
 			) : null}
-			{number > scale24 ? (
+			{value > scale24 ? (
 				<Text>
 					<Text color="magenta" bold>
 						{scaled24} * 1e24{' '}
@@ -67,10 +88,10 @@ export const ArgNumber = ({ number }: { number: bigint }) => {
 			) : null}
 			<Text
 				color={
-					number < scale18 ? (number == BigInt(0) ? 'red' : 'white') : 'grey'
+					value < scale18 ? (value == BigInt(0) ? 'red' : 'white') : 'grey'
 				}
 			>
-				{number.toString()}
+				{value.toString()}
 			</Text>
 		</>
 	);
@@ -167,20 +188,28 @@ export const ArgumentValue = ({
 	value,
 	abi,
 	nesting,
+	summary,
 }: {
 	value: unknown;
 	abi: AbiParameter;
 	nesting: number;
+	summary?: boolean;
 }) => {
 	if (abi.type === 'address') {
-		return <ArgHex value={value as Address} />;
+		return <ArgHex value={value as Address} summary={summary} />;
 	} else if (isNumericType(abi.type)) {
-		return <ArgNumber number={value as bigint} />;
+		return <ArgNumber value={value as bigint} summary={summary} />;
 	} else if (abi.type === 'bytes32') {
-		return <ArgHex value={value as Hex} />;
+		return <ArgHex value={value as Hex} summary={summary} />;
 	} else if (isArray(abi.type)) {
+		if (summary) {
+			return <Text>[...]</Text>;
+		}
 		return <ArgArray value={value as unknown[]} abi={abi} nesting={nesting} />;
 	} else if (abi.type === 'tuple') {
+		if (summary) {
+			return <Text>(...)</Text>;
+		}
 		return (
 			<ArgTuple
 				value={value as unknown[]}
@@ -208,12 +237,17 @@ export const Argument = ({
 	value,
 	abi,
 	nesting,
+	summary,
 }: {
 	value: unknown;
 	index: number;
 	abi: AbiParameter;
 	nesting: number;
+	summary?: boolean;
 }) => {
+	if (summary) {
+		return <ArgumentValue value={value} abi={abi} nesting={nesting} summary />;
+	}
 	return (
 		<>
 			<Text>

@@ -55,7 +55,7 @@ const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
 						key={`${tx.index}-${tx.raw.to}-${tx.raw.data}`}
 						index={tx.index}
 						transaction={tx}
-						selected={selected == tx.index && isFocused}
+						selected={selected == tx.index}
 					/>
 				))}
 			</Box>
