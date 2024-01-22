@@ -100,28 +100,45 @@ class ProposalService {
 		logger.debug('Loading proposal ' + id);
 
 		const proposal = await this.loadBaseProposal(id);
-		const transactions = await this.loadTransactions(proposal);
+
+		const [description, transactions] = await Promise.all([
+			this.loadDescription(proposal),
+			this.loadTransactions(proposal),
+		]);
+
+		logger.info(proposal);
+		logger.info(transactions);
 
 		return {
 			...proposal,
-			description: await this.loadDescription(proposal),
-			transactions: transactions,
+			description,
+			transactions,
 		};
 	}
 
 	async loadDescription(
 		proposal: Pick<IProposal, 'descriptionUrl' | 'id'>,
 	): Promise<string> {
+		let response;
 		try {
-			const response = await fetch(proposal.descriptionUrl).then(res =>
-				res.json(),
-			);
-			const rawUrl = response['payload']['blob']['rawBlobUrl'];
+			response = await fetch(proposal.descriptionUrl).then(res => res.text());
+		} catch (e) {
+			logger.info('Description loading request failed');
+			return '';
+		}
+		let asJson;
+		try {
+			asJson = JSON.parse(response);
+		} catch (e) {
+			logger.info('Parsing description as JSON failed');
+			return response;
+		}
+
+		try {
+			const rawUrl = asJson['payload']['blob']['rawBlobUrl'];
 			return await fetch(rawUrl).then(res => res.text());
 		} catch (e) {
-			logger.error('Failed to load description for proposal ' + proposal.id);
-			logger.error(e);
-			return await fetch(proposal.descriptionUrl).then(res => res.text());
+			return '';
 		}
 	}
 

@@ -73,7 +73,7 @@ const AliasList = ({
 	return (
 		<>
 			<Text>
-				{'   '}
+				{'  └ '}
 				<Text color="green">{main.label}</Text>
 			</Text>
 		</>
@@ -128,7 +128,12 @@ const AliasForm = ({
 		);
 	}
 
-	return <Text color="grey">{'   '}unknown identifier</Text>;
+	return (
+		<Text>
+			{'  └ '}
+			<Text color="grey">unknown identifier</Text>
+		</Text>
+	);
 };
 
 const Entry = ({ identifier, aliases, selected }: EntryProps) => {
