@@ -17,7 +17,7 @@ import {
 import { logger } from '../utils/logger.js';
 import fs from 'fs';
 import path from 'node:path';
-import { metadataDir } from '../utils/paths.js';
+import paths from '../utils/paths.js';
 
 export type IParsedTransaction =
 	| {
@@ -108,21 +108,16 @@ class TransactionsService {
 
 	async loadMetadata(contract: Address) {
 		let metadata: IMetadata | null = null;
-		const chainMetadataDir = path.join(
-			metadataDir,
-			this.client!.chain!.id.toString(),
-		);
-		const metadataFilePath = path.join(chainMetadataDir, `${contract}.json`);
+		const metadataFile = paths.matadataFile(this.client!.chain!.id, contract);
 
-		if (fs.existsSync(metadataFilePath)) {
+		if (fs.existsSync(metadataFile)) {
 			metadata = JSON.parse(
-				fs.readFileSync(metadataFilePath).toString(),
+				fs.readFileSync(metadataFile).toString(),
 			) as IMetadata;
 		} else {
 			metadata = await fetchMetadata(this.client!, contract);
 			if (metadata) {
-				fs.mkdirSync(chainMetadataDir, { recursive: true });
-				fs.writeFileSync(metadataFilePath, JSON.stringify(metadata));
+				fs.writeFileSync(metadataFile, JSON.stringify(metadata));
 			}
 		}
 

@@ -1,5 +1,3 @@
-import os from 'node:os';
-import path from 'node:path';
 import fs from 'node:fs';
 
 import { JsonMap, parse, stringify } from '@iarna/toml';
@@ -7,13 +5,8 @@ import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { useChainId } from 'wagmi';
 import { Address, Hex } from 'viem';
 import { addressbook as defaultAddressbook } from '../utils/default.addressbook.js';
-import { logger } from '../utils/logger.js';
 import { AddressBookContext } from './AddressBookProvider.js';
-
-const home = os.homedir();
-const confDir = path.join(home, '.config/cgp-viewer');
-fs.mkdirSync(confDir, { recursive: true });
-const addressbookPath = path.join(confDir, 'addressbook.toml');
+import paths from '../utils/paths.js';
 
 export interface Alias {
 	label: string;
@@ -26,15 +19,15 @@ let _initialAddressBook: AddressBook | null = null;
 
 const loadInitialAddressBook = () => {
 	if (_initialAddressBook) return _initialAddressBook;
-	if (!fs.existsSync(addressbookPath)) {
+	if (!fs.existsSync(paths.addressbook)) {
 		fs.writeFileSync(
-			addressbookPath,
+			paths.addressbook,
 			stringify(defaultAddressbook as unknown as JsonMap),
 		);
 		_initialAddressBook = defaultAddressbook;
 	} else {
 		_initialAddressBook = parse(
-			fs.readFileSync(addressbookPath, 'utf-8'),
+			fs.readFileSync(paths.addressbook, 'utf-8'),
 		) as unknown as AddressBook;
 	}
 
@@ -53,7 +46,7 @@ export const makeAddressBookContext = () => {
 
 	useEffect(() => {
 		fs.writeFileSync(
-			addressbookPath,
+			paths.addressbook,
 			stringify(addressBook as unknown as JsonMap),
 		);
 	}, [addressBook]);
