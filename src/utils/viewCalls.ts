@@ -70,4 +70,18 @@ export const forGovernance = (governance: Address) =>
 		functionName: 'getProposalTransaction',
 		args: [BigInt(id), BigInt(index)],
 	} as const),
+	getQueue: () =>
+	({
+		address: governance,
+		abi: GovernanceABI,
+		functionName: 'getQueue',
+		args: [],
+	} as const),
+	getDequeue: () =>
+	({
+		address: governance,
+		abi: GovernanceABI,
+		functionName: 'getDequeue',
+		args: [],
+	} as const),
 } as const);

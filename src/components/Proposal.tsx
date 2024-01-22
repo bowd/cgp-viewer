@@ -13,7 +13,8 @@ const STATUS_HEIGHT = 3;
 const METADATA_HEIGHT = 5;
 
 export const Proposal = ({ id }: { id: number }) => {
-	const proposal = proposalService.load(id)!;
+	const proposals = proposalService.loadActive();
+	const proposal = proposalService.loadOne(id)!;
 	const { isFocused: isMetadataFocused } = useFocus({ id: '1' });
 	const { isFocused: isDescriptionFocused } = useFocus({ id: '2' });
 	const { isFocused: isTransactionsFocused } = useFocus({ id: '3' });

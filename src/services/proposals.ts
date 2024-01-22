@@ -51,6 +51,10 @@ export interface ITransaction {
 }
 
 class ProposalService {
+	allProposalsCache: IProposal[] | null = null;
+	allProposalsLoading: boolean = false;
+	allProposalsPromise: Promise<IProposal[]> | null = null;
+
 	proposalCache: Map<number, IProposal> = new Map();
 	isLoading: Set<number> = new Set();
 	promises: Map<number, Promise<IProposal>> = new Map();
@@ -67,8 +71,36 @@ class ProposalService {
 		this.queries = forGovernance(this.governanceAddress);
 	}
 
+	/// @dev Loads all active proposals from the blockchain
+	loadActive(): IProposal[] {
+		if (this.allProposalsCache) {
+			return this.allProposalsCache;
+		}
+		if (this.allProposalsLoading) {
+			throw this.allProposalsPromise;
+		}
+
+		const promise = new Promise<IProposal[]>(async (resolve, reject) => {
+			try {
+				const proposals = await this.handleLoadActive();
+				this.allProposalsCache = proposals;
+				resolve(proposals);
+			} catch (e) {
+				reject(e);
+			} finally {
+				this.allProposalsLoading = false;
+				this.allProposalsPromise = null;
+			}
+		});
+
+		this.allProposalsPromise = promise;
+		this.allProposalsLoading = true;
+
+		throw promise;
+	}
+
 	/// @dev Loads a proposal from the blockchain. Made to work with suspense
-	load(id: number): IProposal {
+	loadOne(id: number): IProposal {
 		if (this.proposalCache.has(id)) {
 			return this.proposalCache.get(id)!;
 		}
@@ -78,7 +110,7 @@ class ProposalService {
 
 		const promise = new Promise<IProposal>(async (resolve, reject) => {
 			try {
-				const proposal = await this.handleLoad(id);
+				const proposal = await this.handleLoadProposal(id);
 				this.proposalCache.set(id, proposal);
 				resolve(proposal);
 			} catch (e) {
@@ -96,7 +128,19 @@ class ProposalService {
 		throw promise;
 	}
 
-	async handleLoad(id: number): Promise<IProposal> {
+	async handleLoadActive(): Promise<IProposal[]> {
+		logger.debug('Loading active proposals');
+		const response = await this.client!.multicall({
+			contracts: [this.queries!.getQueue(), this.queries!.getDequeue()],
+		});
+		logger.info(response[0].error);
+		logger.info(response[1].error);
+		logger.info(response[0].result!.toString());
+		logger.info(response[1].result!.toString());
+		return [];
+	}
+
+	async handleLoadProposal(id: number): Promise<IProposal> {
 		logger.debug('Loading proposal ' + id);
 
 		const proposal = await this.loadBaseProposal(id);
