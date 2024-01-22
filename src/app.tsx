@@ -5,7 +5,6 @@ import { usePublicClient } from 'wagmi';
 
 import { Proposal } from './components/Proposal.js';
 import { StatusBar } from './components/StatusBar.js';
-import { Help } from './components/Help.js';
 
 import { proposalService } from './services/proposals.js';
 import { useStdoutDimensions } from './hooks/useStdoutDimensions.js';

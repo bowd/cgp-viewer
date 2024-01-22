@@ -1,19 +1,12 @@
-import { Logger } from 'tslog';
-import { appendFileSync, mkdirSync } from 'fs';
-import os from 'node:os';
-import path from 'node:path';
+import winston from 'winston';
+import { logCombined, logError } from './paths.js';
 
-const home = os.homedir();
-const logDir = path.join(home, '.cache/cgp-viewer');
-const logFile = path.join(logDir, 'log');
-
-mkdirSync(logDir, { recursive: true });
-export const logger = new Logger({ type: 'hidden', argumentsArrayName: 'args' });
-logger.attachTransport(logObj => {
-	appendFileSync(logFile, JSON.stringify(logObj.args) + '\n');
+export const logger = winston.createLogger({
+	level: 'debug',
+	format: winston.format.prettyPrint(),
+	defaultMeta: { service: 'cgp-viewer' },
+	transports: [
+		new winston.transports.File({ filename: logError, level: 'error' }),
+		new winston.transports.File({ filename: logCombined }),
+	],
 });
-
-console.log = logger.info.bind(logger);
-console.warn = logger.warn.bind(logger);
-console.debug = logger.debug.bind(logger);
-console.error = logger.error.bind(logger);

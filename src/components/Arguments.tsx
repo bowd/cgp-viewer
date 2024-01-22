@@ -201,6 +201,8 @@ export const ArgumentValue = ({
 		return <ArgNumber value={value as bigint} summary={summary} />;
 	} else if (abi.type === 'bytes32') {
 		return <ArgHex value={value as Hex} summary={summary} />;
+	} else if (abi.type === 'string') {
+		return <Text>{value as string}</Text>;
 	} else if (isArray(abi.type)) {
 		if (summary) {
 			return <Text>[...]</Text>;

@@ -16,11 +16,8 @@ import {
 } from '../utils/sourcify.js';
 import { logger } from '../utils/logger.js';
 import fs from 'fs';
-import os from 'node:os';
 import path from 'node:path';
-
-const home = os.homedir();
-const metadataDir = path.join(home, '.cache/cgp-viewer/metadata');
+import { metadataDir } from '../utils/paths.js';
 
 export type IParsedTransaction =
 	| {
