@@ -1,9 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { proposalService } from '../services/proposals.js';
-import { Box, Text, useFocus, useFocusManager } from 'ink';
+import { Box, useFocus, useFocusManager, useInput } from 'ink';
 
 import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
-import { useInput } from '../hooks/useInput.js';
 import { Metadata } from './Metadata.js';
 import { Description } from './Description.js';
 import { Transactions } from './Transactions.js';
@@ -15,20 +14,22 @@ const METADATA_HEIGHT = 5;
 
 export const Proposal = ({ id }: { id: number }) => {
 	const proposal = proposalService.load(id)!;
+	const { isFocused: isMetadataFocused } = useFocus({ id: '1' });
 	const { isFocused: isDescriptionFocused } = useFocus({ id: '2' });
 	const { isFocused: isTransactionsFocused } = useFocus({ id: '3' });
-	const [zoomed, setZoomed] = React.useState<string | null>(null);
-
+	const { isFocused: isAddressBookFocused } = useFocus({ id: '4' });
 	const { focus } = useFocusManager();
+
+	const [zoomed, setZoomed] = React.useState<string | null>(null);
 	const [width, height] = useStdoutDimensions();
 	const [descriptionHeight, transactionsHeight] = useMemo(() => {
 		let transactionsHeight, descriptionHeight;
 		if (zoomed === 'description') {
-			transactionsHeight = 0;
-			descriptionHeight = height - STATUS_HEIGHT - METADATA_HEIGHT;
+			transactionsHeight = 1;
+			descriptionHeight = height - STATUS_HEIGHT - METADATA_HEIGHT - 2;
 		} else if (zoomed === 'transactions') {
-			descriptionHeight = 0;
-			transactionsHeight = height - STATUS_HEIGHT - METADATA_HEIGHT;
+			descriptionHeight = 1;
+			transactionsHeight = height - STATUS_HEIGHT - METADATA_HEIGHT - 2;
 		} else {
 			const half = Math.floor((height - (STATUS_HEIGHT + METADATA_HEIGHT)) / 2);
 			descriptionHeight = half;
@@ -38,31 +39,48 @@ export const Proposal = ({ id }: { id: number }) => {
 		return [descriptionHeight, transactionsHeight];
 	}, [zoomed, height]);
 
-	useInput(input => {
-		if (input.raw === '1') {
-			focus('1');
-		}
+	useEffect(() => {
+		focus('1');
+	}, [id]);
 
-		if (input.raw === '2') {
-			focus('2');
-		}
-
-		if (input.raw === '3') {
-			focus('3');
-		}
-
-		if (input.raw === '4') {
-			focus('4');
-		}
-
-		if (input.raw === 'z') {
-			if (isDescriptionFocused) {
-				setZoomed(z => (z === 'description' ? null : 'description'));
-			} else if (isTransactionsFocused) {
-				setZoomed(z => (z === 'transactions' ? null : 'transactions'));
+	useInput(
+		input => {
+			switch (input) {
+				case '1':
+					focus('1');
+					return;
+				case '2':
+					if (zoomed === 'transactions') {
+						setZoomed(null);
+					}
+					focus('2');
+					return;
+				case '3':
+					if (zoomed === 'description') {
+						setZoomed(null);
+					}
+					focus('3');
+					return;
+				case '4':
+					focus('4');
+					return;
+				case 'z':
+					if (isDescriptionFocused) {
+						setZoomed(z => (z === 'description' ? null : 'description'));
+					} else if (isTransactionsFocused) {
+						setZoomed(z => (z === 'transactions' ? null : 'transactions'));
+					}
+					return;
 			}
-		}
-	});
+		},
+		{
+			isActive:
+				isMetadataFocused ||
+				isDescriptionFocused ||
+				isTransactionsFocused ||
+				isAddressBookFocused,
+		},
+	);
 
 	const addressBookWidth = 46;
 

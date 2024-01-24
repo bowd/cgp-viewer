@@ -12,134 +12,57 @@ type EntryProps = {
 	selected: boolean;
 };
 
-const AliasList = ({
-	aliases,
-	identifier,
-	selected,
-}: {
-	aliases: Alias[];
-	identifier: Hex;
-	selected: boolean;
-}) => {
-	useFocus({ id: 'form' });
+const Entry = ({ identifier, aliases, selected }: EntryProps) => {
+	const { rename, add } = useAddressBook();
 	const { focus } = useFocusManager();
+	const { isFocused: isAddressBookFocused } = useFocus({ id: '4' });
+	const { isFocused: isFormFocused } = useFocus({
+		id: `addressbook.entry.${identifier}`,
+	});
 	const [formActive, setFormActive] = React.useState(false);
-	const { rename } = useAddressBook();
-	const main = useMemo(
+
+	const hasAlias = useMemo(() => aliases.length > 0, [aliases]);
+	const display = useMemo(
+		() =>
+			identifier.length > 42 ? identifier.slice(0, 39) + '...' : identifier,
+		[identifier],
+	);
+
+	const alias = useMemo(
 		() => aliases.find(alias => alias.prefered) || aliases[0],
 		[aliases],
 	);
 
-	const onSubmit = useCallback(
-		(label: string) => {
-			if (label === main.label) {
-				setFormActive(false);
-				focus('4');
-				return;
-			}
-			rename(identifier, main.label, label);
-			setFormActive(false);
-			focus('4');
-		},
-		[rename, main],
-	);
-
 	useInput(
 		(input, key) => {
 			if (key.return || input === 'e') {
-				focus('form');
+				focus(`addressbook.entry.${identifier}`);
 				setFormActive(true);
 			}
 		},
-		{
-			isActive: selected && !formActive,
-		},
-	);
-
-	if (formActive) {
-		return (
-			<>
-				<Box flexDirection="row">
-					<Text color="yellow">{'   '}label: </Text>
-					<UncontrolledTextInput
-						initialValue={main.label}
-						onSubmit={onSubmit}
-					/>
-				</Box>
-			</>
-		);
-	}
-
-	return (
-		<>
-			<Text>
-				{'  └ '}
-				<Text color="green">{main.label}</Text>
-			</Text>
-		</>
-	);
-};
-
-const AliasForm = ({
-	identifier,
-	selected,
-}: {
-	identifier: Hex;
-	selected: boolean;
-}) => {
-	useFocus({ id: 'form' });
-	const { focus } = useFocusManager();
-	const [formActive, setFormActive] = React.useState(false);
-	const { add } = useAddressBook();
-	const onSubmit = useCallback(
-		(label: string) => {
-			if (label === '') {
-				setFormActive(false);
-				focus('4');
-				return;
-			}
-			add(identifier, label);
-			setFormActive(false);
-			focus('4');
-		},
-		[add],
+		{ isActive: isAddressBookFocused && selected },
 	);
 
 	useInput(
-		(input, key) => {
-			if (key.return || input === 'e') {
-				setFormActive(true);
-				focus('form');
+		(_, key) => {
+			if (key.escape) {
+				focus('4');
 			}
 		},
-		{
-			isActive: selected && !formActive,
+		{ isActive: isFormFocused },
+	);
+
+	const onSubmit = useCallback(
+		(label: string) => {
+			if (alias && label !== alias.label) {
+				rename(identifier, alias.label, label);
+			} else if (!alias) {
+				add(identifier, label);
+			}
+			focus('4');
 		},
+		[rename, alias, add, hasAlias],
 	);
-
-	if (formActive) {
-		return (
-			<>
-				<Box flexDirection="row">
-					<Text color="yellow">{'   '}label: </Text>
-					<UncontrolledTextInput onSubmit={onSubmit} />
-				</Box>
-			</>
-		);
-	}
-
-	return (
-		<Text>
-			{'  └ '}
-			<Text color="grey">unknown identifier</Text>
-		</Text>
-	);
-};
-
-const Entry = ({ identifier, aliases, selected }: EntryProps) => {
-	const hasAlias = aliases.length > 0;
-	const display =
-		identifier.length > 42 ? identifier.slice(0, 39) + '...' : identifier;
 
 	return (
 		<Box key={identifier} flexDirection="column">
@@ -147,14 +70,23 @@ const Entry = ({ identifier, aliases, selected }: EntryProps) => {
 				{' '}
 				{display}{' '}
 			</Text>
-			{hasAlias ? (
-				<AliasList
-					identifier={identifier}
-					aliases={aliases}
-					selected={selected}
-				/>
+			{isFormFocused ? (
+				<Box flexDirection="row">
+					<Text color="yellow">{'  '}label: </Text>
+					<UncontrolledTextInput
+						onSubmit={onSubmit}
+						initialValue={alias ? alias.label : undefined}
+					/>
+				</Box>
 			) : (
-				<AliasForm identifier={identifier} selected={selected} />
+				<Text>
+					{'  └ '}
+					{hasAlias ? (
+						<Text color="green">{alias.label}</Text>
+					) : (
+						<Text color="grey">unknown identifier</Text>
+					)}
+				</Text>
 			)}
 		</Box>
 	);

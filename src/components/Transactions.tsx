@@ -72,6 +72,7 @@ export const Transactions = ({
 	height: number;
 	width: number;
 }) => {
+	useFocus({ id: '2' });
 	return (
 		<Pane title="Transactions" focusId="3" height={height}>
 			<Box overflow="hidden" height={height - 2}>
