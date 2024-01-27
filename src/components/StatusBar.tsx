@@ -2,7 +2,7 @@ import React from 'react';
 import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
 import { Text, Box } from 'ink';
 import { useClient } from 'wagmi';
-import { Pane } from './Pane.js';
+import { Pane } from './shared/Pane.js';
 // import { logger } from '../utils/logger.js';
 
 export const StatusBar = () => {

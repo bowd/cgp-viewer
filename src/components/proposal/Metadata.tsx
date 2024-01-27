@@ -1,7 +1,7 @@
 import React from 'react';
-import { IProposal } from '../services/types.js';
+import { IProposal } from '../../services/types.js';
 import { Text, Newline, Box } from 'ink';
-import { Pane } from './Pane.js';
+import { Pane } from '../shared/Pane.js';
 
 const getVotingPercentages = (
 	votes: IProposal['votes'],

@@ -4,10 +4,10 @@ import TerminalRenderer from 'marked-terminal';
 import { parse, setOptions } from 'marked';
 import { Text, Box, useFocus, useInput } from 'ink';
 
-import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
-import { IProposal } from '../services/types.js';
-import { Pane } from './Pane.js';
-import { useAddressBook } from '../hooks/useAddressBook.js';
+import { useStdoutDimensions } from '../../hooks/useStdoutDimensions.js';
+import { IProposal } from '../../services/types.js';
+import { Pane } from '../shared/Pane.js';
+import { useAddressBook } from '../../hooks/useAddressBook.js';
 
 type Props = {
 	children: string;

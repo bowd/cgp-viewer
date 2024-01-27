@@ -1,8 +1,11 @@
 import React from 'react';
 import { Newline, Text } from 'ink';
 import { AbiParameter, Address, Hex } from 'viem';
-import { useAddressBook, useAddressBookLabel } from '../hooks/useAddressBook.js';
-import { logger } from '../utils/logger.js';
+import {
+	useAddressBook,
+	useAddressBookLabel,
+} from '../../hooks/useAddressBook.js';
+import { logger } from '../../utils/logger.js';
 
 export const ArgHex = ({ value, summary }: { value: Hex; summary?: boolean }) => {
 	const { highlightedIdentifier } = useAddressBook();

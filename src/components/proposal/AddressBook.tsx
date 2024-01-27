@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { Text, Box, useFocus, useInput, useFocusManager } from 'ink';
-import { Alias, useAddressBook } from '../hooks/useAddressBook.js';
+import { Alias, useAddressBook } from '../../hooks/useAddressBook.js';
 import { useChainId } from 'wagmi';
 import { Hex } from 'viem';
-import { Pane } from './Pane.js';
+import { Pane } from '../shared/Pane.js';
 import { UncontrolledTextInput } from 'ink-text-input';
 
 type EntryProps = {

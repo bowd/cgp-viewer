@@ -4,32 +4,14 @@ import {
 	createMemoryRouter,
 	useRouteError,
 } from 'react-router-dom';
-import Spinner from 'ink-spinner';
-import { Box, Text, useInput } from 'ink';
+import { Text, useInput } from 'ink';
 
-import { Proposal } from './components/Proposal.js';
+import { Proposal } from './components/proposal/Proposal.js';
 import { StatusBar } from './components/StatusBar.js';
 
-import { useStdoutDimensions } from './hooks/useStdoutDimensions.js';
 import { logger } from './utils/logger.js';
 import { useServices } from './providers/ServiceProvider.js';
-
-const Loading = () => {
-	const [width, height] = useStdoutDimensions();
-
-	return (
-		<Box
-			width={width}
-			height={height - 3}
-			alignItems="center"
-			paddingLeft={width / 2 - 10}
-		>
-			<Text bold color="green">
-				Loading <Spinner type="dots" />
-			</Text>
-		</Box>
-	);
-};
+import { Loading } from './components/shared/Loading.js';
 
 const Error = () => {
 	const error = useRouteError() as Error;
@@ -38,14 +20,7 @@ const Error = () => {
 };
 
 export const App = ({ id }: { id: number }) => {
-	// useKeyNavShortcut({
-	// 	'1': `/proposals/${proposalId}/metadata`,
-	// 	'2': `/proposals/${proposalId}/description`,
-	// 	'3': `/proposals/${proposalId}/transactions`,
-	// 	'4': `/proposals/${proposalId}/address-book`,
-	// })
-	//
-	const { proposal, initialized } = useServices();
+	const { initialized } = useServices();
 
 	useInput(input => {
 		if (input === 'q') {
@@ -62,7 +37,6 @@ export const App = ({ id }: { id: number }) => {
 			{
 				path: '/proposals/:id',
 				element: <Proposal />,
-				loader: async ({ params }) => proposal.load(parseInt(params.id || '')),
 				errorElement: <Error />,
 			},
 		],
@@ -74,7 +48,9 @@ export const App = ({ id }: { id: number }) => {
 
 	return (
 		<>
-			<RouterProvider router={router} />
+			<React.Suspense fallback={<Loading />}>
+				<RouterProvider router={router} />
+			</React.Suspense>
 			<StatusBar />
 		</>
 	);
