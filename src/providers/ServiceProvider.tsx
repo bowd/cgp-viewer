@@ -19,8 +19,9 @@ export type Services = typeof DEFAULT;
 export const ServiceContext = createContext<Services>(DEFAULT);
 
 export const useServices = () => {
-	const { proposal, transactions, initialized } = useContext(ServiceContext);
-	return { proposal, transactions, initialized };
+	const { proposal, transactions, governance, initialized } =
+		useContext(ServiceContext);
+	return { proposal, transactions, governance, initialized };
 };
 
 export const ServiceProvider = ({ children }: any) => {
