@@ -3,12 +3,12 @@
 import React from 'react';
 import { render } from 'ink';
 import meow from 'meow';
-import { App } from './app.js';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { makeConfig } from './utils/wagmiConfig.js';
-import './utils/logger.js';
-import AddressBookProvider from './hooks/AddressBookProvider.js';
+import { AddressBookProvider } from './providers/AddressBookProvider.js';
+import { App } from './app.js';
+import { ServiceProvider } from './providers/ServiceProvider.js';
 
 const cli = meow(
 	`
@@ -57,7 +57,9 @@ render(
 	<QueryClientProvider client={queryClient}>
 		<WagmiProvider config={makeConfig(flags.chain, flags.node)}>
 			<AddressBookProvider>
-				<App proposalId={proposalId} />
+				<ServiceProvider>
+					<App id={proposalId} />
+				</ServiceProvider>
 			</AddressBookProvider>
 		</WagmiProvider>
 	</QueryClientProvider>,

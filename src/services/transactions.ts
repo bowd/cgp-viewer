@@ -7,7 +7,7 @@ import {
 	encodeFunctionData,
 	parseAbiItem,
 } from 'viem';
-import { ITransaction, IProposal } from './proposals.js';
+import { ProposalService } from './proposals.js';
 import {
 	IMetadata,
 	fetchMetadata,
@@ -16,31 +16,9 @@ import {
 } from '../utils/sourcify.js';
 import { logger } from '../utils/logger.js';
 import fs from 'fs';
-import path from 'node:path';
 import paths from '../utils/paths.js';
-
-export type IParsedTransaction =
-	| {
-		parsed: true;
-		signature: string;
-		index: number;
-		raw: ITransaction;
-		to: {
-			address: Address;
-			name: string;
-			isProxy: boolean;
-			implementation?: Address;
-		};
-		value: bigint;
-		functionName: string;
-		abi: AbiFunction;
-		args: unknown[];
-	}
-	| {
-		parsed: false;
-		index: number;
-		raw: ITransaction;
-	};
+import { CollectionLoaderService } from './service.js';
+import { IParsedTransaction, ITransaction } from './types.js';
 
 interface FourBytesResponse {
 	count: number;
@@ -51,53 +29,29 @@ interface FourBytesResponse {
 	}>;
 }
 
-class TransactionsService {
+export class TransactionsService extends CollectionLoaderService<
+	number,
+	IParsedTransaction[]
+> {
 	client: PublicClient | null = null;
-	transactionsCache: Map<number, IParsedTransaction[]> = new Map();
-	isLoading: Set<number> = new Set();
-	promises: Map<number, Promise<IParsedTransaction[]>> = new Map();
 	abis: Map<Address, AbiFunction[]> = new Map();
 	contractNames: Map<Address, string> = new Map();
 	isProxy: Set<Address> = new Set();
 	proxyToImplementations: Map<Address, Address[]> = new Map();
+	proposalService: ProposalService;
+
+	constructor(proposalService: ProposalService) {
+		super();
+		this.proposalService = proposalService;
+	}
 
 	async init(client: PublicClient) {
 		this.client = client;
 	}
 
-	parse(proposal: IProposal): IParsedTransaction[] {
-		if (this.transactionsCache.has(proposal.id)) {
-			return this.transactionsCache.get(proposal.id)!;
-		}
-		if (this.isLoading.has(proposal.id)) {
-			throw this.promises.get(proposal.id)!;
-		}
-
-		const promise = new Promise<IParsedTransaction[]>(
-			async (resolve, reject) => {
-				try {
-					const txs = await this.handleParse(proposal);
-					this.transactionsCache.set(proposal.id, txs);
-					resolve(txs);
-				} catch (e) {
-					logger.error('Failed to parse transactions', e);
-					// Todo Handle error better
-					reject(e);
-				} finally {
-					this.promises.delete(proposal.id);
-					this.isLoading.delete(proposal.id);
-				}
-			},
-		);
-
-		this.promises.set(proposal.id, promise);
-		this.isLoading.add(proposal.id);
-
-		throw promise;
-	}
-
-	async handleParse(proposal: IProposal): Promise<IParsedTransaction[]> {
-		logger.info('Parsing transactions for', proposal.id);
+	async handleLoad(id: number): Promise<IParsedTransaction[]> {
+		const proposal = await this.proposalService.load(id);
+		logger.info(['Parsing transactions for', id]);
 		await Promise.all(proposal.transactions.map(tx => this.loadAbis(tx)));
 		return Promise.all(
 			proposal.transactions.map((tx, index) =>
@@ -260,5 +214,3 @@ class TransactionsService {
 		}
 	}
 }
-
-export const transactionsService = new TransactionsService();

@@ -5,7 +5,7 @@ import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
 import { useChainId } from 'wagmi';
 import { Address, Hex } from 'viem';
 import { addressbook as defaultAddressbook } from '../utils/default.addressbook.js';
-import { AddressBookContext } from './AddressBookProvider.js';
+import { AddressBookContext } from '../providers/AddressBookProvider.js';
 import paths from '../utils/paths.js';
 
 export interface Alias {

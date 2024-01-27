@@ -1,15 +1,18 @@
 import React, { useEffect, Suspense } from 'react';
+import {
+	RouterProvider,
+	createMemoryRouter,
+	useRouteError,
+} from 'react-router-dom';
 import Spinner from 'ink-spinner';
-import { Box, Text, useFocusManager, useInput } from 'ink';
-import { usePublicClient } from 'wagmi';
+import { Box, Text, useInput } from 'ink';
 
 import { Proposal } from './components/Proposal.js';
 import { StatusBar } from './components/StatusBar.js';
 
-import { proposalService } from './services/proposals.js';
 import { useStdoutDimensions } from './hooks/useStdoutDimensions.js';
 import { logger } from './utils/logger.js';
-import { transactionsService } from './services/transactions.js';
+import { useServices } from './providers/ServiceProvider.js';
 
 const Loading = () => {
 	const [width, height] = useStdoutDimensions();
@@ -28,37 +31,50 @@ const Loading = () => {
 	);
 };
 
-export const App = ({ proposalId }: { proposalId: number }) => {
-	const client = usePublicClient();
-	const [ready, setReady] = React.useState(false);
-	const [showHelp, setShowHelp] = React.useState(false);
+const Error = () => {
+	const error = useRouteError() as Error;
+	logger.error(error);
+	return <Text color="red">{error.message}</Text>;
+};
 
-	useEffect(() => {
-		logger.info('Initializing proposal service');
-		Promise.all([
-			proposalService.init(client),
-			transactionsService.init(client),
-		]).then(() => setReady(true));
-	}, [client, setReady]);
+export const App = ({ id }: { id: number }) => {
+	// useKeyNavShortcut({
+	// 	'1': `/proposals/${proposalId}/metadata`,
+	// 	'2': `/proposals/${proposalId}/description`,
+	// 	'3': `/proposals/${proposalId}/transactions`,
+	// 	'4': `/proposals/${proposalId}/address-book`,
+	// })
+	//
+	const { proposal, initialized } = useServices();
 
-	useInput((input, key) => {
-		if (input === 'h' || input === '?') {
-			setShowHelp(true);
-		}
+	useInput(input => {
 		if (input === 'q') {
 			process.exit(0);
 		}
 	});
 
-	if (!ready) {
+	if (initialized === false) {
 		return <Loading />;
 	}
 
+	const router = createMemoryRouter(
+		[
+			{
+				path: '/proposals/:id',
+				element: <Proposal />,
+				loader: async ({ params }) => proposal.load(parseInt(params.id || '')),
+				errorElement: <Error />,
+			},
+		],
+		{
+			initialEntries: [`/proposals/${id}`],
+			initialIndex: 0,
+		},
+	);
+
 	return (
 		<>
-			<Suspense fallback={<Loading />}>
-				<Proposal id={proposalId} />
-			</Suspense>
+			<RouterProvider router={router} />
 			<StatusBar />
 		</>
 	);

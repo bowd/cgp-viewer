@@ -1,14 +1,18 @@
 import React, { Suspense, useEffect } from 'react';
-import { IProposal } from '../services/proposals.js';
+import { IProposal } from '../services/types.js';
 import { Text, Box, useFocus, useInput } from 'ink';
 import { Transaction } from './Transaction.js';
-import { transactionsService } from '../services/transactions.js';
 import Spinner from 'ink-spinner';
 import { useAddressBook } from '../hooks/useAddressBook.js';
 import { Pane } from './Pane.js';
+import { useServices } from '../providers/ServiceProvider.js';
+import { logger } from '../utils/logger.js';
 
 const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
-	const transactions = transactionsService.parse(proposal);
+	const { transactions: transactionsService } = useServices();
+	const transactions = transactionsService.loadSuspense(proposal.id);
+	logger.info('------------------------');
+	logger.info(transactions);
 	const { addBatch } = useAddressBook();
 	useEffect(() => {
 		addBatch(

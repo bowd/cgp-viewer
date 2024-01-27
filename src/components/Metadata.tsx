@@ -1,5 +1,5 @@
 import React from 'react';
-import { IProposal } from '../services/proposals.js';
+import { IProposal } from '../services/types.js';
 import { Text, Newline, Box } from 'ink';
 import { Pane } from './Pane.js';
 

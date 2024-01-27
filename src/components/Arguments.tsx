@@ -1,6 +1,5 @@
 import React from 'react';
 import { Newline, Text } from 'ink';
-import { transactionsService } from '../services/transactions.js';
 import { AbiParameter, Address, Hex } from 'viem';
 import { useAddressBook, useAddressBookLabel } from '../hooks/useAddressBook.js';
 import { logger } from '../utils/logger.js';

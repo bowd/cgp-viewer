@@ -1,15 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
-import { IProposal } from '../services/proposals.js';
-import { Text, Box, useFocus } from 'ink';
-import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
-import { parse, setOptions } from 'marked';
 // @ts-ignore
 import TerminalRenderer from 'marked-terminal';
-import { useInput } from 'ink';
-import { logger } from '../utils/logger.js';
+import { parse, setOptions } from 'marked';
+import { Text, Box, useFocus, useInput } from 'ink';
+
+import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
+import { IProposal } from '../services/types.js';
 import { Pane } from './Pane.js';
 import { useAddressBook } from '../hooks/useAddressBook.js';
-import { Address } from 'viem';
 
 type Props = {
 	children: string;

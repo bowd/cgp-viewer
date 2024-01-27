@@ -1,20 +1,23 @@
 import React, { useEffect, useMemo } from 'react';
-import { proposalService } from '../services/proposals.js';
 import { Box, useFocus, useFocusManager, useInput } from 'ink';
 
+import { IProposal } from '../services/types.js';
 import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
 import { Metadata } from './Metadata.js';
 import { Description } from './Description.js';
 import { Transactions } from './Transactions.js';
 import { logger } from '../utils/logger.js';
 import { AddressBook } from './AddressBook.js';
+import { useLoaderData, useSearchParams } from 'react-router-dom';
 
 const STATUS_HEIGHT = 3;
 const METADATA_HEIGHT = 5;
 
-export const Proposal = ({ id }: { id: number }) => {
-	const proposals = proposalService.loadActive();
-	const proposal = proposalService.loadOne(id)!;
+export const Proposal = () => {
+	const proposal: IProposal = useLoaderData() as IProposal;
+	let [searchParams, setSearchParams] = useSearchParams();
+	// const proposals = proposalService.loadActive();
+	// const proposal = proposalService.loadOne(id)!;
 	const { isFocused: isMetadataFocused } = useFocus({ id: '1' });
 	const { isFocused: isDescriptionFocused } = useFocus({ id: '2' });
 	const { isFocused: isTransactionsFocused } = useFocus({ id: '3' });
@@ -42,7 +45,7 @@ export const Proposal = ({ id }: { id: number }) => {
 
 	useEffect(() => {
 		focus('1');
-	}, [id]);
+	}, []);
 
 	useInput(
 		input => {

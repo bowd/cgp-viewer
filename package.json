@@ -28,6 +28,7 @@
 		"marked-terminal": "^6.2.0",
 		"meow": "^11.0.0",
 		"react": "^18.2.0",
+		"react-router-dom": "^6.21.3",
 		"toml": "^3.0.0",
 		"viem": "^2.4.0",
 		"wagmi": "^2.3.1",

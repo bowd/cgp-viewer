@@ -1,11 +1,11 @@
 import React, { createContext, useContext } from 'react';
-import { makeAddressBookContext } from './useAddressBook.js';
+import { makeAddressBookContext } from '../hooks/useAddressBook.js';
 
 export const AddressBookContext = createContext<ReturnType<
 	typeof makeAddressBookContext
 > | null>(null);
 
-export default function AddressBookProvider({ children }: any) {
+export function AddressBookProvider({ children }: any) {
 	const addressBook = makeAddressBookContext();
 	return (
 		<AddressBookContext.Provider value={addressBook}>

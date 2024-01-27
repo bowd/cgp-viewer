@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, Box, Newline } from 'ink';
-import { IParsedTransaction } from '../services/transactions.js';
+import { IParsedTransaction } from '../services/types.js';
 import { ArgHex, ArgNumber, Argument } from './Arguments.js';
 import { useAddressBookLabel } from '../hooks/useAddressBook.js';
 
