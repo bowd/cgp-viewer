@@ -4,12 +4,13 @@ import { Text, Box, BoxProps, useFocus } from 'ink';
 type PaneProps = BoxProps & {
 	title: string;
 	focusId?: string;
+	shortcut?: string;
 	children: React.ReactNode;
 };
 
 export const Pane = (props: PaneProps) => {
-	const { title: _title, focusId, children, ...boxProps } = props;
-	const title = ` ${focusId ? `${_title} [${focusId}]` : _title} `;
+	const { title: _title, focusId, children, shortcut, ...boxProps } = props;
+	const title = ` ${shortcut ? `${_title} [${shortcut}]` : _title} `;
 
 	const { isFocused } = useFocus({ id: focusId });
 	const textColor = isFocused ? 'yellow' : 'white';

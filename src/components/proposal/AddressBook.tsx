@@ -142,7 +142,7 @@ export const AddressBook = ({
 	const offset = Math.max(selected - maxShown + 1, 0);
 
 	return (
-		<Pane title="Address Book" focusId="4" height={height} width={width}>
+		<Pane title="Address Book" shortcut="4" focusId="addressbook" height={height} width={width}>
 			<Box overflow="hidden">
 				<Box flexDirection="column" width={width}>
 					{identifiersInProposal

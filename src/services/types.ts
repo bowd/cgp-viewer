@@ -56,7 +56,7 @@ export interface ITransaction {
 	data: Hex;
 }
 
-interface IListProposal {
+export interface IListProposal {
 	id: number;
 	stage: Stage;
 	votes: {

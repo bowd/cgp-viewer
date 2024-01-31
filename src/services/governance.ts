@@ -24,7 +24,7 @@ export class GovernanceService extends SingleLoaderService<IGovernanceData> {
 		throwIfError(lists);
 
 		const queued = lists[0].result!.map(Number);
-		const dequeued = lists[0].result!.map(Number);
+		const dequeued = lists[1].result!.map(Number);
 		const all = [...queued, ...dequeued];
 
 		const [stage, votes, isApproved] = await Promise.all([
@@ -44,16 +44,20 @@ export class GovernanceService extends SingleLoaderService<IGovernanceData> {
 		throwIfError(isApproved);
 
 		return {
-			proposals: all.map((id, i) => ({
-				id,
-				stage: toStage(stage[i].result!),
-				votes: {
-					votesFor: votes[i].result![0],
-					votesAgainst: votes[i].result![1],
-					abstains: votes[i].result![2],
-				},
-				isApproved: isApproved[i].result as boolean,
-			})),
+			proposals: all
+				.map((id, i) => ({
+					id,
+					stage: toStage(stage[i].result!),
+					votes: {
+						votesFor: votes[i].result![0],
+						votesAgainst: votes[i].result![1],
+						abstains: votes[i].result![2],
+					},
+					isApproved: isApproved[i].result as boolean,
+				}))
+				.sort((a, b) => a.id - b.id)
+				.reverse()
+				.filter(p => p.stage !== 'None'),
 		};
 	}
 }

@@ -26,7 +26,7 @@ export const Metadata = ({
 	const percs = getVotingPercentages(proposal.votes);
 
 	return (
-		<Pane title="Metadata" focusId="1" height={height}>
+		<Pane title="Metadata" shortcut="1" focusId="metadata" height={height}>
 			<Box paddingLeft={1}>
 				<Text>
 					<Text bold backgroundColor={'yellow'} color="black">

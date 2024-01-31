@@ -18,10 +18,10 @@ export const Proposal = () => {
 	const { id } = useParams();
 	const { proposal: proposalService } = useServices();
 	const proposal = proposalService.loadSuspense(parseInt(id!));
-	const { isFocused: isMetadataFocused } = useFocus({ id: '1' });
-	const { isFocused: isDescriptionFocused } = useFocus({ id: '2' });
-	const { isFocused: isTransactionsFocused } = useFocus({ id: '3' });
-	const { isFocused: isAddressBookFocused } = useFocus({ id: '4' });
+	const { isFocused: isMetadataFocused } = useFocus({ id: 'metadata' });
+	const { isFocused: isDescriptionFocused } = useFocus({ id: 'description' });
+	const { isFocused: isTransactionsFocused } = useFocus({ id: 'transaction' });
+	const { isFocused: isAddressBookFocused } = useFocus({ id: 'addressbook' });
 	const { focus } = useFocusManager();
 
 	const [zoomed, setZoomed] = React.useState<string | null>(null);
@@ -44,29 +44,29 @@ export const Proposal = () => {
 	}, [zoomed, height]);
 
 	useEffect(() => {
-		focus('1');
+		focus('metadata');
 	}, []);
 
 	useInput(
 		input => {
 			switch (input) {
 				case '1':
-					focus('1');
+					focus('metadata');
 					return;
 				case '2':
 					if (zoomed === 'transactions') {
 						setZoomed(null);
 					}
-					focus('2');
+					focus('description');
 					return;
 				case '3':
 					if (zoomed === 'description') {
 						setZoomed(null);
 					}
-					focus('3');
+					focus('transactions');
 					return;
 				case '4':
-					focus('4');
+					focus('addressbook');
 					return;
 				case 'z':
 					if (isDescriptionFocused) {

@@ -65,7 +65,12 @@ export const Transactions = ({
 }) => {
 	useFocus({ id: '2' });
 	return (
-		<Pane title="Transactions" focusId="3" height={height}>
+		<Pane
+			title="Transactions"
+			shortcut="3"
+			focusId="transactions"
+			height={height}
+		>
 			<Box overflow="hidden" height={height - 2}>
 				<Suspense
 					fallback={

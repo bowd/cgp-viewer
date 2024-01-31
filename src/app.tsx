@@ -26,12 +26,14 @@ const Error = () => {
 
 const Base = () => {
 	const { initialized } = useServices();
+	const navigate = useNavigate();
 
 	useShortcut(
 		{
 			q: () => process.exit(0),
+			b: () => navigate('/proposals/'),
 		},
-		['1', '2', '3', '4'],
+		['metadata', 'description', 'transactions', 'proposals', 'help'],
 	);
 
 	if (initialized === false) {

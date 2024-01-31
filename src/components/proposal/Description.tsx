@@ -13,7 +13,7 @@ type Props = {
 	children: string;
 };
 
-const Markdown = ({ children, ...options }: Props) => {
+export const Markdown = ({ children, ...options }: Props) => {
 	const [width] = useStdoutDimensions();
 	const { highlightedIdentifier } = useAddressBook();
 
@@ -72,7 +72,12 @@ export const Description = ({
 	);
 
 	return (
-		<Pane title="Description" focusId="2" height={height}>
+		<Pane
+			title="Description"
+			shortcut="2"
+			focusId="description"
+			height={height}
+		>
 			<Box overflow="hidden" height={height - 2}>
 				<Box marginTop={-scrollTop}>
 					<Markdown>{proposal.description}</Markdown>
