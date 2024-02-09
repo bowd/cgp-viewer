@@ -24,7 +24,7 @@ const TransactionsList = ({ proposal }: { proposal: IProposal }) => {
 		);
 	}, [transactionsService.contractNames, addBatch]);
 
-	const { isFocused } = useFocus({ id: '3' });
+	const { isFocused } = useFocus({ id: 'transactions' });
 	const [selected, setSelected] = React.useState(0);
 
 	useInput(

@@ -5,6 +5,7 @@ import { useChainId } from 'wagmi';
 import { Hex } from 'viem';
 import { Pane } from '../shared/Pane.js';
 import { UncontrolledTextInput } from 'ink-text-input';
+import { logger } from '../../utils/logger.js';
 
 type EntryProps = {
 	identifier: Hex;
@@ -15,11 +16,10 @@ type EntryProps = {
 const Entry = ({ identifier, aliases, selected }: EntryProps) => {
 	const { rename, add } = useAddressBook();
 	const { focus } = useFocusManager();
-	const { isFocused: isAddressBookFocused } = useFocus({ id: '4' });
+	const { isFocused: isAddressBookFocused } = useFocus({ id: 'addressbook' });
 	const { isFocused: isFormFocused } = useFocus({
 		id: `addressbook.entry.${identifier}`,
 	});
-	const [formActive, setFormActive] = React.useState(false);
 
 	const hasAlias = useMemo(() => aliases.length > 0, [aliases]);
 	const display = useMemo(
@@ -34,10 +34,9 @@ const Entry = ({ identifier, aliases, selected }: EntryProps) => {
 	);
 
 	useInput(
-		(input, key) => {
-			if (key.return || input === 'e') {
+		(_, key) => {
+			if (key.return) {
 				focus(`addressbook.entry.${identifier}`);
-				setFormActive(true);
 			}
 		},
 		{ isActive: isAddressBookFocused && selected },
@@ -46,7 +45,7 @@ const Entry = ({ identifier, aliases, selected }: EntryProps) => {
 	useInput(
 		(_, key) => {
 			if (key.escape) {
-				focus('4');
+				focus('addressbook');
 			}
 		},
 		{ isActive: isFormFocused },
@@ -59,7 +58,7 @@ const Entry = ({ identifier, aliases, selected }: EntryProps) => {
 			} else if (!alias) {
 				add(identifier, label);
 			}
-			focus('4');
+			focus('addressbook');
 		},
 		[rename, alias, add, hasAlias],
 	);
@@ -72,7 +71,7 @@ const Entry = ({ identifier, aliases, selected }: EntryProps) => {
 			</Text>
 			{isFormFocused ? (
 				<Box flexDirection="row">
-					<Text color="yellow">{'  '}label: </Text>
+					<Text>{'  └ '}</Text>
 					<UncontrolledTextInput
 						onSubmit={onSubmit}
 						initialValue={alias ? alias.label : undefined}
@@ -99,7 +98,7 @@ export const AddressBook = ({
 	height: number;
 	width: number;
 }) => {
-	const { isFocused } = useFocus({ id: '4' });
+	const { isFocused } = useFocus({ id: 'addressbook' });
 	const chainId = useChainId();
 	const { addressBook, identifiersInProposal, setHighlightedIdentifier } =
 		useAddressBook();
@@ -142,7 +141,13 @@ export const AddressBook = ({
 	const offset = Math.max(selected - maxShown + 1, 0);
 
 	return (
-		<Pane title="Address Book" shortcut="4" focusId="addressbook" height={height} width={width}>
+		<Pane
+			title="Address Book"
+			shortcut="4"
+			focusId="addressbook"
+			height={height}
+			width={width}
+		>
 			<Box overflow="hidden">
 				<Box flexDirection="column" width={width}>
 					{identifiersInProposal

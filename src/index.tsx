@@ -49,9 +49,6 @@ type Flags = {
 const flags: Flags = cli.flags as Flags;
 
 const proposalId = parseInt(cli.input.at(0) || '');
-if (isNaN(proposalId)) {
-	cli.showHelp();
-}
 
 render(
 	<QueryClientProvider client={queryClient}>

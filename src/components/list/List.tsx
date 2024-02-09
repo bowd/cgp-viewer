@@ -47,7 +47,7 @@ export const List = () => {
 				<Box
 					overflow="hidden"
 					height={height - 2}
-					width={25}
+					width={24}
 					flexDirection="column"
 				>
 					{data.proposals
@@ -62,7 +62,9 @@ export const List = () => {
 								<Text color={selected === index + offset ? 'yellow' : 'white'}>
 									{proposal.id.toString().padStart(3, ' ')} -{' '}
 								</Text>
-								<Text color="grey">{proposal.stage}</Text>
+								<Text color={selected === index + offset ? 'green' : 'grey'}>
+									{proposal.stage}
+								</Text>
 							</Box>
 						))}
 				</Box>

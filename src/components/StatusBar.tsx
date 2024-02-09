@@ -3,12 +3,39 @@ import { useStdoutDimensions } from '../hooks/useStdoutDimensions.js';
 import { Text, Box } from 'ink';
 import { useClient } from 'wagmi';
 import { Pane } from './shared/Pane.js';
-// import { logger } from '../utils/logger.js';
 
-export const StatusBar = () => {
+type Variant = 'proposal' | 'list';
+
+type StatusBarProps = {
+	variant: Variant;
+};
+
+type Shortcut = {
+	key: string;
+	description: string;
+};
+
+const SHORTCUTS: Record<Variant, Array<[string, string]>> = {
+	proposal: [
+		['1/2/3/4', 'to switch tabs'],
+		['z', 'to zoom'],
+		['j/k', 'to scroll'],
+		['ENTER', 'to edit or set label'],
+		['a', 'see all proposals'],
+		['q', 'to quit'],
+	],
+	list: [
+		['j/k', 'to scroll'],
+		['ENTER', 'to view proposal'],
+		['q', 'to quit'],
+	],
+};
+
+export const StatusBar = ({ variant }: StatusBarProps) => {
 	const [width] = useStdoutDimensions();
 	const client = useClient();
 	const nodeURL = client.transport['url'].split('//')[1];
+	const shortcuts = SHORTCUTS[variant];
 
 	return (
 		<Pane title="Info" width={width}>
@@ -20,20 +47,14 @@ export const StatusBar = () => {
 				</Box>
 				<Box flexGrow={1}></Box>
 				<Box flexGrow={0}>
-					<Text bold>1/2/3/4</Text>
-					<Text> to switch tabs</Text>
-					<Text> | </Text>
-					<Text bold>q</Text>
-					<Text> to quit</Text>
-					<Text> | </Text>
-					<Text bold>j/k</Text>
-					<Text> to scroll</Text>
-					<Text> | </Text>
-					<Text bold>z</Text>
-					<Text> to zoom</Text>
-					<Text> | </Text>
-					<Text bold>ENTER</Text>
-					<Text> to edit or set label </Text>
+					{shortcuts.map(([key, description], index) => (
+						<>
+							<Text bold>{key}</Text>
+							<Text> {description}</Text>
+							{index < shortcuts.length - 1 && <Text> | </Text>}
+						</>
+					))}
+					<Text> </Text>
 				</Box>
 			</Box>
 		</Pane>

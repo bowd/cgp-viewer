@@ -31,9 +31,16 @@ const Base = () => {
 	useShortcut(
 		{
 			q: () => process.exit(0),
-			b: () => navigate('/proposals/'),
+			a: () => navigate('/proposals/'),
 		},
-		['metadata', 'description', 'transactions', 'proposals', 'help'],
+		[
+			'metadata',
+			'description',
+			'transactions',
+			'addressbook',
+			'proposals',
+			'help',
+		],
 	);
 
 	if (initialized === false) {
@@ -45,7 +52,7 @@ const Base = () => {
 
 export const App = ({ id }: { id: number | null }) => {
 	let initialEntries: string[] = ['/proposals/'];
-	if (id !== null) {
+	if (id !== null && !isNaN(id)) {
 		initialEntries[0] = `/proposals/${id}`;
 	}
 
@@ -58,12 +65,22 @@ export const App = ({ id }: { id: number | null }) => {
 				children: [
 					{
 						path: '/proposals/:id',
-						element: <Proposal />,
+						element: (
+							<>
+								<Proposal />
+								<StatusBar variant="proposal" />
+							</>
+						),
 						errorElement: <Error />,
 					},
 					{
 						path: '/proposals/',
-						element: <List />,
+						element: (
+							<>
+								<List />
+								<StatusBar variant="list" />
+							</>
+						),
 						errorElement: <Error />,
 					},
 					{
@@ -81,11 +98,8 @@ export const App = ({ id }: { id: number | null }) => {
 	);
 
 	return (
-		<>
-			<React.Suspense fallback={<Loading />}>
-				<RouterProvider router={router} />
-			</React.Suspense>
-			<StatusBar />
-		</>
+		<React.Suspense fallback={<Loading />}>
+			<RouterProvider router={router} />
+		</React.Suspense>
 	);
 };

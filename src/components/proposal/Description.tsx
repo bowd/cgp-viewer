@@ -58,7 +58,7 @@ export const Description = ({
 	height: number;
 }) => {
 	const [scrollTop, setScrollTop] = React.useState(-1);
-	const { isFocused } = useFocus({ id: '2' });
+	const { isFocused } = useFocus({ id: 'description' });
 
 	useInput(
 		input => {

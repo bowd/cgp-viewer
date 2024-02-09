@@ -20,7 +20,7 @@ export const Proposal = () => {
 	const proposal = proposalService.loadSuspense(parseInt(id!));
 	const { isFocused: isMetadataFocused } = useFocus({ id: 'metadata' });
 	const { isFocused: isDescriptionFocused } = useFocus({ id: 'description' });
-	const { isFocused: isTransactionsFocused } = useFocus({ id: 'transaction' });
+	const { isFocused: isTransactionsFocused } = useFocus({ id: 'transactions' });
 	const { isFocused: isAddressBookFocused } = useFocus({ id: 'addressbook' });
 	const { focus } = useFocusManager();
 
